@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+@theme {
+  --color-rose-antiga: #C9768F;
+  --color-bege: #F5EDE3;
+  --color-off-white: #FAFAF8;
+  --color-preto-profundo: #0D0D0D;
+  --color-dourado: #C9A96E;
+  --color-creme: #E8D5B7;
+  --color-lavanda: #E8E0F0;
+  --color-lilas: #9B8EC4;
+  --color-sage: #7D9B76;
+
+  --font-display: var(--font-playfair), Georgia, serif;
+  --font-cormorant: var(--font-cormorant), Georgia, serif;
+  --font-body: var(--font-inter), system-ui, sans-serif;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+}
+
+:root {
+  --background: #FAFAF8;
+  --foreground: #1a1a1a;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-cormorant {
+  font-family: var(--font-cormorant);
+}
+
+/* Animação flip para o contador */
+@keyframes flip-in {
+  0% { transform: rotateX(-90deg); opacity: 0; }
+  100% { transform: rotateX(0deg); opacity: 1; }
+}
+
+@keyframes flip-out {
+  0% { transform: rotateX(0deg); opacity: 1; }
+  100% { transform: rotateX(90deg); opacity: 0; }
+}
+
+.flip-enter {
+  animation: flip-in 0.3s ease forwards;
+}
+
+/* Typewriter cursor */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.typewriter-cursor::after {
+  content: '|';
+  animation: blink 1s step-end infinite;
+}
+
+/* Gradientes */
+.gradient-rose {
+  background: linear-gradient(135deg, #C9768F 0%, #F5EDE3 100%);
+}
+
+.gradient-hero {
+  background: linear-gradient(180deg, #FAFAF8 0%, #F5EDE3 60%, #FAFAF8 100%);
+}
+
+.gradient-dark {
+  background: linear-gradient(135deg, #0D0D0D 0%, #1a1a1a 100%);
+}
+
+/* Scrollbar customizada */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F5EDE3;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C9768F;
+  border-radius: 3px;
+}
+
+/* Seleção de texto */
+::selection {
+  background: #C9768F;
+  color: white;
+}
