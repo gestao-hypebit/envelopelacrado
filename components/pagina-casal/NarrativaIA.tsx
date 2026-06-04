@@ -8,10 +8,15 @@ interface NarrativaIAProps {
   tema?: string
 }
 
+const CORES: Record<string, { texto: string; acento: string; sub: string }> = {
+  classico: { texto: '#F0E4D4', acento: '#C9768F', sub: 'rgba(240,228,212,0.38)' },
+  escuro:   { texto: '#E8D5B7', acento: '#C9A96E', sub: 'rgba(232,213,183,0.38)' },
+  pastel:   { texto: '#E8E0F0', acento: '#9b6fbd', sub: 'rgba(232,224,240,0.38)' },
+  floral:   { texto: '#E0F0DE', acento: '#7a9e78', sub: 'rgba(224,240,222,0.38)' },
+}
+
 export default function NarrativaIA({ narrativa, tema = 'classico' }: NarrativaIAProps) {
-  const escuro = tema === 'escuro'
-  const corTexto = escuro ? '#E8D5B7' : '#2a2a2a'
-  const corAcento = escuro ? '#C9A96E' : '#C9768F'
+  const { texto: corTexto, acento: corAcento, sub: corSub } = CORES[tema] ?? CORES.classico
 
   const paragrafos = narrativa
     .split('\n')
@@ -66,7 +71,7 @@ export default function NarrativaIA({ narrativa, tema = 'classico' }: NarrativaI
                   {/* Ponto na linha central */}
                   <div
                     className={`absolute top-2 hidden md:block w-2.5 h-2.5 rounded-full border-2 ${esquerda ? '-right-[calc(8%+5px)]' : '-left-[calc(8%+5px)]'}`}
-                    style={{ background: corAcento, borderColor: escuro ? '#0D0D0D' : '#FAFAF8' }}
+                    style={{ background: corAcento, borderColor: 'rgba(0,0,0,0.6)' }}
                   />
 
                   {/* Texto */}
@@ -114,7 +119,7 @@ export default function NarrativaIA({ narrativa, tema = 'classico' }: NarrativaI
             <span style={{ color: corAcento, opacity: 0.6 }}>✦ ♥ ✦</span>
             <div className="w-10 h-px" style={{ background: corAcento, opacity: 0.4 }} />
           </div>
-          <p className="text-xs mt-3" style={{ color: escuro ? '#666' : '#bbb' }}>
+          <p className="text-xs mt-3" style={{ color: corSub }}>
             Narrativa criada com inteligência artificial
           </p>
         </motion.div>

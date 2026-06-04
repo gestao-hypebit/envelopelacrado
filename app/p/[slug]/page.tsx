@@ -8,6 +8,7 @@ import TimeLine from '@/components/pagina-casal/TimeLine'
 import GaleriaFotos from '@/components/pagina-casal/GaleriaFotos'
 import PlayerMusica from '@/components/pagina-casal/PlayerMusica'
 import MessageBoard from '@/components/pagina-casal/MessageBoard'
+import RoletaDestinos from '@/components/pagina-casal/RoletaDestinos'
 import type { Momento, Resposta } from '@/types'
 import Link from 'next/link'
 
@@ -59,73 +60,87 @@ export default async function PaginaCasal({ params }: Props) {
     .order('created_at', { ascending: false })
 
   const tema = pagina.tema ?? 'classico'
-  const escuro = tema === 'escuro'
 
-  const bgStyles: Record<string, string> = {
-    classico: 'linear-gradient(180deg, #FAFAF8 0%, #F5EDE3 40%, #FAFAF8 100%)',
-    escuro: 'linear-gradient(180deg, #0D0D0D 0%, #1a1a1a 50%, #0D0D0D 100%)',
-    pastel: 'linear-gradient(180deg, #F8F4FF 0%, #E8E0F0 40%, #F8F4FF 100%)',
-    floral: 'linear-gradient(180deg, #FFFFFF 0%, #F0F7EF 40%, #FFFFFF 100%)',
+  // Seções alternadas: escuro=tudo dark, outros temas=dark+light alternados
+  const SEC: Record<string, { base: string; dark: string; darkAlt: string; light: string; footer: string; acento: string }> = {
+    classico: { base: '#0d0612', dark: '#100814', darkAlt: '#18081c', light: '#F5EDE3', footer: '#0d0612', acento: '#C9768F' },
+    escuro:   { base: '#0D0D0D', dark: '#0D0D0D', darkAlt: '#111',    light: '#181818', footer: '#0D0D0D', acento: '#C9A96E' },
+    pastel:   { base: '#0a0614', dark: '#0e0818', darkAlt: '#12082a', light: '#E8E0F0', footer: '#0a0614', acento: '#9b6fbd' },
+    floral:   { base: '#060c06', dark: '#080e08', darkAlt: '#0c1408', light: '#F0F7EF', footer: '#060c06', acento: '#7a9e78' },
   }
+  const sec = SEC[tema] ?? SEC.classico
 
   return (
     <AberturaPagina nome1={pagina.nome_pessoa1} nome2={pagina.nome_pessoa2} tema={tema}>
-    <main
-      style={{
-        background: bgStyles[tema] || bgStyles.classico,
-        minHeight: '100vh',
-      }}
-    >
-      {/* Contador de relacionamento */}
+    <main style={{ background: sec.base, minHeight: '100vh', position: 'relative' }}>
+
+      {/* Grain texture overlay — fixo, sutil, cobre toda a página */}
+      <div
+        aria-hidden
+        style={{
+          position: 'fixed',
+          inset: 0,
+          pointerEvents: 'none',
+          zIndex: 9998,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")`,
+          opacity: 0.038,
+        }}
+      />
+
+      {/* Contador — hero com carrossel de fotos */}
       <ContadorRelacionamento
         dataInicio={pagina.data_inicio}
         nome1={pagina.nome_pessoa1}
         nome2={pagina.nome_pessoa2}
         tema={tema}
+        fotos={momentos?.filter((m) => m.foto_url).map((m) => m.foto_url!) ?? []}
       />
 
-      {/* Divisor */}
-      <div className="max-w-xl mx-auto px-4">
-        <div className="h-px" style={{ background: 'linear-gradient(to right, transparent, #C9768F, transparent)' }} />
-      </div>
-
-      {/* Narrativa da IA */}
+      {/* Narrativa da IA — dark alt */}
       {pagina.narrativa_ia && (
-        <NarrativaIA narrativa={pagina.narrativa_ia} tema={tema} />
+        <div style={{ background: sec.darkAlt }}>
+          <NarrativaIA narrativa={pagina.narrativa_ia} tema={tema} />
+        </div>
       )}
 
-      {/* Galeria de fotos */}
+      {/* Galeria de fotos — light (contraste) */}
       {momentos && momentos.length > 0 && (
-        <GaleriaFotos momentos={momentos as Momento[]} tema={tema} />
+        <div style={{ background: sec.light }}>
+          <GaleriaFotos momentos={momentos as Momento[]} tema={tema} />
+        </div>
       )}
 
-      {/* Linha do tempo */}
+      {/* Linha do tempo — dark */}
       {momentos && momentos.length > 0 && (
-        <TimeLine momentos={momentos as Momento[]} tema={tema} />
+        <div style={{ background: sec.dark }}>
+          <TimeLine momentos={momentos as Momento[]} tema={tema} />
+        </div>
       )}
 
-      {/* Player de música */}
+      {/* Player de música — light */}
       {pagina.musica_url && (
-        <PlayerMusica musicaUrl={pagina.musica_url} tema={tema} />
+        <div style={{ background: sec.light }}>
+          <PlayerMusica musicaUrl={pagina.musica_url} tema={tema} />
+        </div>
       )}
 
-      {/* MessageBoard */}
-      <MessageBoard
-        pageId={pagina.id}
-        respostas={(respostas as Resposta[]) ?? []}
-        tema={tema}
-      />
+      {/* Roleta de programas — dark (próprio bg via TEMA_CONFIG) */}
+      <RoletaDestinos tema={tema} />
 
-      {/* Divisor final */}
-      <div className="max-w-xl mx-auto px-4 mb-8">
-        <div className="h-px" style={{ background: 'linear-gradient(to right, transparent, #C9768F, transparent)' }} />
+      {/* MessageBoard — light */}
+      <div style={{ background: sec.light }}>
+        <MessageBoard
+          pageId={pagina.id}
+          respostas={(respostas as Resposta[]) ?? []}
+          tema={tema}
+        />
       </div>
 
-      {/* Footer de marketing */}
-      <footer className="py-8 text-center px-4">
-        <p className="text-sm" style={{ color: escuro ? '#666' : '#999' }}>
+      {/* Footer */}
+      <footer className="py-10 text-center px-4" style={{ background: sec.footer }}>
+        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.25)' }}>
           Crie a sua página em{' '}
-          <Link href="/" className="text-[#C9768F] hover:underline font-medium">
+          <Link href="/" style={{ color: sec.acento }} className="hover:underline font-medium">
             envelopelacrado.com.br
           </Link>
         </p>

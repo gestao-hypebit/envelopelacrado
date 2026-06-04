@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import CoracoesFlutantes from './CoracoesFlutantes'
 
 interface Props {
   nome1: string
@@ -355,6 +356,9 @@ export default function AberturaPagina({ nome1, nome2, tema = 'classico', childr
       >
         {children}
       </motion.div>
+
+      {/* Corações — fora da motion.div para position:fixed funcionar corretamente */}
+      {fase === 'aberto' && <CoracoesFlutantes />}
     </>
   )
 }

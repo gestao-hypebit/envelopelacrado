@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect } from 'react'
 import { motion, useInView } from 'framer-motion'
 import Image from 'next/image'
 import type { Momento } from '@/types'
@@ -32,10 +32,8 @@ function PolaroidCard({ momento, index, tema }: { momento: Momento; index: numbe
       <div
         className="p-3 pb-10 shadow-xl"
         style={{
-          background: escuro ? '#f0e8e0' : '#fff',
-          boxShadow: escuro
-            ? '0 8px 32px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4)'
-            : '0 8px 32px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.08)',
+          background: '#f0e8e0',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.35)',
         }}
       >
         {/* Foto */}
@@ -93,16 +91,21 @@ function PolaroidCard({ momento, index, tema }: { momento: Momento; index: numbe
   )
 }
 
+const CORES: Record<string, { titulo: string; acento: string; sub: string }> = {
+  classico: { titulo: '#F0E4D4', acento: '#C9768F', sub: 'rgba(240,228,212,0.55)' },
+  escuro:   { titulo: '#E8D5B7', acento: '#C9A96E', sub: 'rgba(232,213,183,0.55)' },
+  pastel:   { titulo: '#E8E0F0', acento: '#9b6fbd', sub: 'rgba(232,224,240,0.55)' },
+  floral:   { titulo: '#E0F0DE', acento: '#7a9e78', sub: 'rgba(224,240,222,0.55)' },
+}
+
 export default function TimeLine({ momentos, tema = 'classico' }: TimeLineProps) {
-  const [fontLoaded, setFontLoaded] = useState(false)
-  const escuro = tema === 'escuro'
+  const cores = CORES[tema] ?? CORES.classico
 
   useEffect(() => {
     const link = document.createElement('link')
     link.rel = 'stylesheet'
     link.href = 'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap'
     document.head.appendChild(link)
-    link.onload = () => setFontLoaded(true)
   }, [])
 
   if (!momentos || momentos.length === 0) return null
@@ -119,19 +122,19 @@ export default function TimeLine({ momentos, tema = 'classico' }: TimeLineProps)
         >
           <span
             className="text-sm font-medium tracking-widest uppercase"
-            style={{ color: '#C9768F' }}
+            style={{ color: cores.acento }}
           >
             A nossa jornada
           </span>
           <h2
             className="font-display text-3xl sm:text-4xl font-bold mt-2"
-            style={{ color: escuro ? '#C9A96E' : '#1a1a1a' }}
+            style={{ color: cores.titulo }}
           >
             Momentos que ficaram
           </h2>
           <p
-            className="text-sm mt-2 opacity-60"
-            style={{ color: escuro ? '#E8D5B7' : '#666' }}
+            className="text-sm mt-2"
+            style={{ color: cores.sub }}
           >
             Passe o mouse para ver melhor
           </p>

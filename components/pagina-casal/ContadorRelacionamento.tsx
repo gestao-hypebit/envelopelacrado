@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+import Image from 'next/image'
 import { useContador } from '@/hooks/useContador'
 
 interface Props {
@@ -9,175 +10,273 @@ interface Props {
   nome1: string
   nome2: string
   tema?: string
+  fotos?: string[]
 }
 
-function FlipCard({ valor, label, corTexto, corFundo }: {
-  valor: number
-  label: string
-  corTexto: string
-  corFundo: string
-}) {
-  const exibir = String(valor).padStart(2, '0')
-  const anterior = useRef(exibir)
-  const [flipping, setFlipping] = useState(false)
+const HERO_BG: Record<string, string> = {
+  classico: 'linear-gradient(155deg, #1e0818 0%, #0d0612 100%)',
+  escuro:   'linear-gradient(155deg, #1a1010 0%, #0D0D0D 100%)',
+  pastel:   'linear-gradient(155deg, #15083a 0%, #0a0618 100%)',
+  floral:   'linear-gradient(155deg, #0c1e0a 0%, #060c06 100%)',
+}
 
+const CORES: Record<string, { texto: string; acento: string; label: string }> = {
+  classico: { texto: '#F0E4D4', acento: '#C9768F', label: 'rgba(240,228,212,0.42)' },
+  escuro:   { texto: '#E8D5B7', acento: '#C9A96E', label: 'rgba(232,213,183,0.42)' },
+  pastel:   { texto: '#E8E0F0', acento: '#9b6fbd', label: 'rgba(232,224,240,0.42)' },
+  floral:   { texto: '#E0F0De', acento: '#7a9e78', label: 'rgba(224,240,222,0.42)' },
+}
+
+const CARD_W = 200
+const CARD_H = 260
+const OFFSET  = 80   // deslocamento lateral das fotos do lado
+
+function FotoCarousel({ fotos, acento }: { fotos: string[]; acento: string }) {
+  const [atual, setAtual] = useState(0)
+  const total = fotos.length
+
+  // Auto-avança a cada 4 s quando há mais de uma foto
   useEffect(() => {
-    if (anterior.current !== exibir) {
-      setFlipping(true)
-      const t = setTimeout(() => {
-        setFlipping(false)
-        anterior.current = exibir
-      }, 300)
-      return () => clearTimeout(t)
-    }
-  }, [exibir])
+    if (total <= 1) return
+    const t = setInterval(() => setAtual(a => (a + 1) % total), 4000)
+    return () => clearInterval(t)
+  }, [total])
+
+  if (total === 0) return null
+
+  // Diferença circular em [-floor(total/2), floor(total/2)]
+  const getDiff = (idx: number) => {
+    let d = ((idx - atual) % total + total) % total
+    if (d > total / 2) d -= total
+    return d
+  }
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      {/* Flip clock card */}
-      <div className="relative" style={{ perspective: '400px' }}>
-        {/* Card superior (estático) */}
-        <div
-          className="w-16 sm:w-20 h-9 sm:h-11 rounded-t-lg flex items-end justify-center pb-0.5 overflow-hidden border-b border-black/10"
-          style={{ background: corFundo }}
-        >
-          <span
-            className="font-display font-bold text-2xl sm:text-3xl leading-none select-none"
-            style={{ color: corTexto }}
-          >
-            {exibir}
-          </span>
-        </div>
+    <div className="flex flex-col items-center mb-8">
+      {/* Container das fotos — overflow hidden para cortar as laterais */}
+      <div
+        className="relative overflow-hidden"
+        style={{ width: CARD_W + OFFSET * 2, height: CARD_H }}
+      >
+        {fotos.map((foto, idx) => {
+          const d = getDiff(idx)
+          // Mostra apenas current (0), prev (-1) e next (1)
+          if (Math.abs(d) > 1) return null
 
-        {/* Divisor horizontal */}
-        <div className="w-full h-px" style={{ background: 'rgba(0,0,0,0.2)' }} />
+          const isCenter = d === 0
 
-        {/* Card inferior (estático) */}
-        <div
-          className="w-16 sm:w-20 h-9 sm:h-11 rounded-b-lg flex items-start justify-center pt-0.5 overflow-hidden"
-          style={{ background: corFundo, filter: 'brightness(0.92)' }}
-        >
-          <span
-            className="font-display font-bold text-2xl sm:text-3xl leading-none select-none"
-            style={{ color: corTexto }}
-          >
-            {exibir}
-          </span>
-        </div>
-
-        {/* Flip animation overlay */}
-        <AnimatePresence>
-          {flipping && (
+          return (
             <motion.div
-              className="absolute inset-0 rounded-lg overflow-hidden flex items-center justify-center"
-              style={{ background: corFundo, zIndex: 10 }}
-              initial={{ rotateX: 0 }}
-              animate={{ rotateX: -90 }}
-              exit={{ rotateX: -180 }}
-              transition={{ duration: 0.25, ease: 'easeIn' }}
+              key={idx}
+              className="absolute rounded-2xl overflow-hidden"
+              style={{
+                width: CARD_W,
+                height: CARD_H,
+                left: '50%',
+                top: 0,
+                marginLeft: -CARD_W / 2,
+                cursor: isCenter ? 'default' : 'pointer',
+                boxShadow: isCenter
+                  ? `0 16px 48px rgba(0,0,0,0.65), 0 0 0 2px ${acento}50`
+                  : '0 6px 24px rgba(0,0,0,0.45)',
+              }}
+              animate={{
+                x: d * OFFSET,
+                scale: isCenter ? 1 : 0.82,
+                opacity: isCenter ? 1 : 0.55,
+                zIndex: isCenter ? 3 : 1,
+              }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              onClick={() => {
+                if (d === -1) setAtual(a => (a - 1 + total) % total)
+                if (d ===  1) setAtual(a => (a + 1) % total)
+              }}
             >
-              <span
-                className="font-display font-bold text-2xl sm:text-3xl"
-                style={{ color: corTexto }}
-              >
-                {anterior.current}
-              </span>
+              <Image src={foto} alt="" fill className="object-cover object-center" sizes="200px" />
+              {/* Overlay escuro nas fotos laterais */}
+              {!isCenter && (
+                <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.38)' }} />
+              )}
             </motion.div>
-          )}
-        </AnimatePresence>
+          )
+        })}
       </div>
 
-      <span
-        className="text-xs uppercase tracking-widest font-medium"
-        style={{ color: corTexto, opacity: 0.5 }}
-      >
-        {label}
-      </span>
+      {/* Dots indicadores */}
+      {total > 1 && (
+        <div className="flex items-center gap-1.5 mt-4">
+          {fotos.map((_, i) => (
+            <motion.button
+              key={i}
+              onClick={() => setAtual(i)}
+              animate={{ width: i === atual ? 18 : 6, opacity: i === atual ? 1 : 0.35 }}
+              transition={{ duration: 0.25 }}
+              className="h-1.5 rounded-full"
+              style={{ background: acento }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
 
-export default function ContadorRelacionamento({ dataInicio, nome1, nome2, tema = 'classico' }: Props) {
+export default function ContadorRelacionamento({
+  dataInicio,
+  nome1,
+  nome2,
+  tema = 'classico',
+  fotos = [],
+}: Props) {
   const { anos, meses, dias, horas, minutos, segundos } = useContador(dataInicio)
-  const escuro = tema === 'escuro'
-  const corTexto = escuro ? '#C9A96E' : '#1a1a1a'
-  const corFundo = escuro ? 'rgba(201,169,110,0.12)' : 'rgba(255,255,255,0.8)'
+  const cores = CORES[tema] ?? CORES.classico
+  const temFotos = fotos.length > 0
 
-  const unidades = [
-    ...(anos > 0 ? [{ valor: anos, label: anos === 1 ? 'ano' : 'anos' }] : []),
-    ...(meses > 0 ? [{ valor: meses, label: meses === 1 ? 'mês' : 'meses' }] : []),
-    { valor: dias, label: dias === 1 ? 'dia' : 'dias' },
-    { valor: horas, label: 'horas' },
-    { valor: minutos, label: 'min' },
-    { valor: segundos, label: 'seg' },
+  const partesData = [
+    anos > 0 ? `${anos} ${anos === 1 ? 'ano' : 'anos'}` : null,
+    meses > 0 ? `${meses} ${meses === 1 ? 'mês' : 'meses'}` : null,
+    `${dias} ${dias === 1 ? 'dia' : 'dias'}`,
   ]
+    .filter(Boolean)
+    .join(' · ')
+
+  const tempo = `${String(horas).padStart(2, '0')}h ${String(minutos).padStart(2, '0')}min ${String(segundos).padStart(2, '0')}s`
 
   return (
-    <div className="py-20 px-4 text-center">
-      <motion.p
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="text-xs font-semibold tracking-widest uppercase mb-3"
-        style={{ color: '#C9768F' }}
-      >
-        ✦ unidos há ✦
-      </motion.p>
-
-      <motion.h1
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="font-display text-5xl sm:text-7xl font-bold mb-4 tracking-tight"
-        style={{ color: corTexto }}
-      >
-        {nome1}
-        <span style={{ color: '#C9768F' }}> & </span>
-        {nome2}
-      </motion.h1>
-
+    <div
+      className="relative flex items-center justify-center text-center overflow-hidden"
+      style={{
+        background: HERO_BG[tema] ?? HERO_BG.classico,
+        minHeight: '100svh',
+        paddingTop: 64,
+        paddingBottom: 64,
+      }}
+    >
+      {/* Bokeh de fundo */}
       <motion.div
-        initial={{ scaleX: 0 }}
-        animate={{ scaleX: 1 }}
-        transition={{ delay: 0.5, duration: 0.8 }}
-        className="h-px w-24 mx-auto mb-12"
-        style={{ background: 'linear-gradient(to right, transparent, #C9768F, transparent)' }}
+        className="absolute rounded-full pointer-events-none"
+        style={{
+          width: 380, height: 380,
+          left: '-8%', top: '-12%',
+          background: cores.acento,
+          filter: 'blur(120px)',
+          opacity: 0.13,
+        }}
+        animate={{ x: [0, 18, 0], y: [0, -12, 0] }}
+        transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute rounded-full pointer-events-none"
+        style={{
+          width: 300, height: 300,
+          right: '-5%', bottom: '8%',
+          background: cores.acento,
+          filter: 'blur(100px)',
+          opacity: 0.10,
+        }}
+        animate={{ x: [0, -16, 0], y: [0, 12, 0] }}
+        transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut', delay: -8 }}
       />
 
-      {/* Flip clock */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="flex flex-wrap items-start justify-center gap-3 sm:gap-5"
-      >
-        {unidades.map((u, i) => (
-          <div key={u.label} className="flex items-start gap-3 sm:gap-5">
-            <FlipCard valor={u.valor} label={u.label} corTexto={corTexto} corFundo={corFundo} />
-            {i < unidades.length - 1 && i !== 2 && (
-              <span
-                className="font-display text-3xl font-bold mt-1 opacity-30 select-none"
-                style={{ color: corTexto }}
-              >
-                :
-              </span>
-            )}
-            {i === 2 && (
-              <div className="w-px h-14 self-center opacity-20" style={{ background: corTexto }} />
-            )}
-          </div>
-        ))}
-      </motion.div>
+      {/* Vinheta */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse 85% 85% at 50% 50%, transparent 40%, rgba(0,0,0,0.4) 100%)',
+        }}
+      />
 
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.45 }}
-        transition={{ delay: 0.8 }}
-        className="text-sm mt-10"
-        style={{ color: escuro ? '#E8D5B7' : '#888' }}
-      >
-        e contando, segundo a segundo
-      </motion.p>
+      {/* Conteúdo */}
+      <div className="relative z-10 px-6 max-w-xl mx-auto w-full flex flex-col items-center">
+
+        {/* Carrossel de fotos */}
+        {temFotos && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.6 }}
+          >
+            <FotoCarousel fotos={fotos} acento={cores.acento} />
+          </motion.div>
+        )}
+
+        {/* Nomes */}
+        <motion.h1
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: temFotos ? 0.4 : 0.2, type: 'spring', stiffness: 70, damping: 18 }}
+          className="font-display font-bold tracking-tight mb-6"
+          style={{
+            color: cores.texto,
+            fontSize: 'clamp(2rem, 9vw, 4.4rem)',
+            lineHeight: 1.1,
+          }}
+        >
+          {nome1}
+          <span style={{ color: cores.acento }}> & </span>
+          {nome2}
+        </motion.h1>
+
+        {/* Linha decorativa */}
+        <motion.div
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ delay: temFotos ? 0.55 : 0.35, duration: 0.7 }}
+          className="mb-6"
+          style={{
+            height: 1,
+            width: 64,
+            background: `linear-gradient(to right, transparent, ${cores.acento}, transparent)`,
+          }}
+        />
+
+        {/* Badge — acima da contagem */}
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: temFotos ? 0.6 : 0.4 }}
+          className="text-xs font-semibold tracking-[0.22em] uppercase mb-3"
+          style={{ color: cores.acento }}
+        >
+          ✦ unidos há ✦
+        </motion.p>
+
+        {/* Contagem em prosa */}
+        <motion.p
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: temFotos ? 0.6 : 0.45 }}
+          className="font-display font-bold mb-3"
+          style={{
+            color: cores.texto,
+            fontSize: 'clamp(1.3rem, 5vw, 2.4rem)',
+          }}
+        >
+          {partesData}
+        </motion.p>
+
+        {/* Relógio ticking */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: temFotos ? 0.75 : 0.6 }}
+          className="tabular-nums text-sm sm:text-base tracking-widest"
+          style={{ color: cores.label, fontVariantNumeric: 'tabular-nums' }}
+        >
+          {tempo}
+        </motion.p>
+
+        {/* Rodapé */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.1 }}
+          className="text-xs mt-8 tracking-wide"
+          style={{ color: cores.label }}
+        >
+          e contando, segundo a segundo
+        </motion.p>
+      </div>
     </div>
   )
 }
