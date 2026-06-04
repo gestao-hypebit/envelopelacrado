@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { motion, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion'
+import { motion, useScroll, useTransform, useMotionValue, useSpring, useReducedMotion } from 'framer-motion'
 import Image from 'next/image'
 import { useContador } from '@/hooks/useContador'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 interface Props {
   dataInicio: string
@@ -27,12 +28,12 @@ const CORES: Record<string, { texto: string; acento: string; label: string }> = 
   floral:   { texto: '#E0F0DE', acento: '#7a9e78', label: 'rgba(224,240,222,0.42)' },
 }
 
-const CARD_W = 200
-const CARD_H = 260
-const OFFSET  = 80
+const CARD_W = 176
+const CARD_H = 230
+const OFFSET  = 66
 
 /* ── Carrossel com tilt 3D ── */
-function FotoCarousel({ fotos, acento }: { fotos: string[]; acento: string }) {
+function FotoCarousel({ fotos, acento, skipAnimations }: { fotos: string[]; acento: string; skipAnimations: boolean }) {
   const [atual, setAtual] = useState(0)
   const total = fotos.length
 
@@ -95,9 +96,9 @@ function FotoCarousel({ fotos, acento }: { fotos: string[]; acento: string }) {
                   ? `0 16px 48px rgba(0,0,0,0.65), 0 0 0 2px ${acento}50`
                   : '0 6px 24px rgba(0,0,0,0.45)',
                 transformPerspective: 600,
-                // Tilt 3D só no card central via MotionValues
-                rotateX: isCenter ? springRX : 0,
-                rotateY: isCenter ? springRY : 0,
+                // Tilt 3D só no card central em desktop
+                rotateX: isCenter && !skipAnimations ? springRX : 0,
+                rotateY: isCenter && !skipAnimations ? springRY : 0,
               }}
               animate={{
                 x: d * OFFSET,
@@ -106,8 +107,8 @@ function FotoCarousel({ fotos, acento }: { fotos: string[]; acento: string }) {
                 zIndex: isCenter ? 3 : 1,
               }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              onMouseMove={isCenter ? handleMouseMove : undefined}
-              onMouseLeave={isCenter ? handleMouseLeave : undefined}
+              onMouseMove={isCenter && !skipAnimations ? handleMouseMove : undefined}
+              onMouseLeave={isCenter && !skipAnimations ? handleMouseLeave : undefined}
               onClick={() => {
                 if (d === -1) setAtual(a => (a - 1 + total) % total)
                 if (d ===  1) setAtual(a => (a + 1) % total)
@@ -149,14 +150,17 @@ export default function ContadorRelacionamento({
   const cores = CORES[tema] ?? CORES.classico
   const temFotos = fotos.length > 0
   const heroRef = useRef<HTMLDivElement>(null)
+  const isMobile = useIsMobile()
+  const reduceMotion = useReducedMotion()
+  const skipAnimations = isMobile || !!reduceMotion
 
-  // Parallax — bokeh movem mais devagar que o conteúdo ao scrollar
+  // Parallax — desativado no mobile (caro demais por frame de scroll)
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ['start start', 'end start'],
   })
-  const bokeh1Y = useTransform(scrollYProgress, [0, 1], ['0%', '-45%'])
-  const bokeh2Y = useTransform(scrollYProgress, [0, 1], ['0%', '-28%'])
+  const bokeh1Y = useTransform(scrollYProgress, [0, 1], skipAnimations ? ['0%', '0%'] : ['0%', '-45%'])
+  const bokeh2Y = useTransform(scrollYProgress, [0, 1], skipAnimations ? ['0%', '0%'] : ['0%', '-28%'])
 
   const partesData = [
     anos > 0 ? `${anos} ${anos === 1 ? 'ano' : 'anos'}` : null,
@@ -170,22 +174,30 @@ export default function ContadorRelacionamento({
     <div
       ref={heroRef}
       className="relative flex items-center justify-center text-center overflow-hidden"
-      style={{ background: HERO_BG[tema] ?? HERO_BG.classico, minHeight: '100svh', paddingTop: 64, paddingBottom: 64 }}
+      style={{ background: HERO_BG[tema] ?? HERO_BG.classico, minHeight: '100svh', paddingTop: 48, paddingBottom: 48 }}
     >
-      {/* Bokeh com parallax */}
+      {/* Bokeh — com parallax no desktop, estático no mobile */}
       <motion.div
         className="absolute rounded-full pointer-events-none"
         style={{
-          width: 380, height: 380, left: '-8%', top: '-12%',
-          background: cores.acento, filter: 'blur(120px)', opacity: 0.13,
+          width: skipAnimations ? 280 : 380,
+          height: skipAnimations ? 280 : 380,
+          left: '-8%', top: '-12%',
+          background: cores.acento,
+          filter: `blur(${skipAnimations ? 90 : 120}px)`,
+          opacity: 0.13,
           y: bokeh1Y,
         }}
       />
       <motion.div
         className="absolute rounded-full pointer-events-none"
         style={{
-          width: 300, height: 300, right: '-5%', bottom: '8%',
-          background: cores.acento, filter: 'blur(100px)', opacity: 0.10,
+          width: skipAnimations ? 220 : 300,
+          height: skipAnimations ? 220 : 300,
+          right: '-5%', bottom: '8%',
+          background: cores.acento,
+          filter: `blur(${skipAnimations ? 75 : 100}px)`,
+          opacity: 0.10,
           y: bokeh2Y,
         }}
       />
@@ -205,7 +217,7 @@ export default function ContadorRelacionamento({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15, duration: 0.6 }}
           >
-            <FotoCarousel fotos={fotos} acento={cores.acento} />
+            <FotoCarousel fotos={fotos} acento={cores.acento} skipAnimations={skipAnimations} />
           </motion.div>
         )}
 

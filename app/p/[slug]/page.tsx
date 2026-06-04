@@ -102,7 +102,7 @@ export default async function PaginaCasal({ params, searchParams }: Props) {
 
   return (
     <AberturaPagina nome1={pagina.nome_pessoa1} nome2={pagina.nome_pessoa2} tema={tema} autoAbrir={isPreview}>
-    <main style={{ background: sec.base, minHeight: '100vh', position: 'relative' }}>
+    <main style={{ background: sec.base, minHeight: '100vh', position: 'relative', contain: 'paint' }}>
 
       {/* Grain texture overlay — fixo, sutil, cobre toda a página */}
       <div
@@ -129,7 +129,7 @@ export default async function PaginaCasal({ params, searchParams }: Props) {
       {/* Narrativa da IA — dark alt */}
       {pagina.narrativa_ia && (
         <>
-          <div style={{ height: 56, background: `linear-gradient(to bottom, ${sec.dark}, ${sec.darkAlt})` }} />
+          <div style={{ height: 32, background: `linear-gradient(to bottom, ${sec.dark}, ${sec.darkAlt})` }} />
           <div style={{ background: sec.darkAlt }}>
             <NarrativaIA narrativa={pagina.narrativa_ia} tema={tema} />
           </div>
@@ -139,7 +139,7 @@ export default async function PaginaCasal({ params, searchParams }: Props) {
       {/* Galeria de fotos — light */}
       {momentos && momentos.length > 0 && (
         <>
-          <div style={{ height: 72, background: `linear-gradient(to bottom, ${sec.darkAlt}, ${sec.light})` }} />
+          <div style={{ height: 44, background: `linear-gradient(to bottom, ${sec.darkAlt}, ${sec.light})` }} />
           <div style={{ background: sec.light }}>
             <GaleriaFotos momentos={momentos as Momento[]} tema={tema} />
           </div>
@@ -149,7 +149,7 @@ export default async function PaginaCasal({ params, searchParams }: Props) {
       {/* Linha do tempo — dark */}
       {momentos && momentos.length > 0 && (
         <>
-          <div style={{ height: 72, background: `linear-gradient(to bottom, ${sec.light}, ${sec.dark})` }} />
+          <div style={{ height: 44, background: `linear-gradient(to bottom, ${sec.light}, ${sec.dark})` }} />
           <div style={{ background: sec.dark }}>
             <TimeLine momentos={momentos as Momento[]} tema={tema} />
           </div>
@@ -159,7 +159,7 @@ export default async function PaginaCasal({ params, searchParams }: Props) {
       {/* Player de música — light */}
       {pagina.musica_url && (
         <>
-          <div style={{ height: 64, background: `linear-gradient(to bottom, ${sec.dark}, ${sec.light})` }} />
+          <div style={{ height: 40, background: `linear-gradient(to bottom, ${sec.dark}, ${sec.light})` }} />
           <div style={{ background: sec.light }}>
             <PlayerMusica musicaUrl={pagina.musica_url} tema={tema} />
           </div>
@@ -168,13 +168,13 @@ export default async function PaginaCasal({ params, searchParams }: Props) {
 
       {/* Roleta — dark */}
       <>
-        <div style={{ height: 64, background: `linear-gradient(to bottom, ${pagina.musica_url ? sec.light : sec.dark}, ${sec.dark})` }} />
+        <div style={{ height: 40, background: `linear-gradient(to bottom, ${pagina.musica_url ? sec.light : sec.dark}, ${sec.dark})` }} />
         <RoletaDestinos tema={tema} />
       </>
 
       {/* MessageBoard — light */}
       <>
-        <div style={{ height: 64, background: `linear-gradient(to bottom, ${sec.dark}, ${sec.light})` }} />
+        <div style={{ height: 40, background: `linear-gradient(to bottom, ${sec.dark}, ${sec.light})` }} />
         <div style={{ background: sec.light }}>
           <MessageBoard
             pageId={pagina.id}
@@ -186,7 +186,7 @@ export default async function PaginaCasal({ params, searchParams }: Props) {
 
       {/* Assinatura — dark base */}
       <>
-        <div style={{ height: 64, background: `linear-gradient(to bottom, ${sec.light}, ${sec.base})` }} />
+        <div style={{ height: 40, background: `linear-gradient(to bottom, ${sec.light}, ${sec.base})` }} />
         <div className="py-16 px-4 text-center" style={{ background: sec.base }}>
           <p
             className="italic"

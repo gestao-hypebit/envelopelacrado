@@ -30,14 +30,14 @@ function PolaroidCard({ momento, index, tema }: { momento: Momento; index: numbe
     >
       {/* Polaroid */}
       <div
-        className="p-3 pb-10 shadow-xl"
+        className="p-2 sm:p-3 pb-7 sm:pb-10 shadow-xl"
         style={{
           background: '#f0e8e0',
           boxShadow: '0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.35)',
         }}
       >
         {/* Foto */}
-        <div className="relative w-full aspect-square overflow-hidden bg-gray-100" style={{ minHeight: 160 }}>
+        <div className="relative w-full aspect-square overflow-hidden bg-gray-100" style={{ minHeight: 110 }}>
           {momento.foto_url ? (
             <Image
               src={momento.foto_url}
@@ -111,37 +111,37 @@ export default function TimeLine({ momentos, tema = 'classico' }: TimeLineProps)
   if (!momentos || momentos.length === 0) return null
 
   return (
-    <section className="py-20 px-4">
+    <section className="py-12 sm:py-20 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Cabeçalho */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-10 sm:mb-16"
         >
           <span
-            className="text-sm font-medium tracking-widest uppercase"
+            className="text-xs sm:text-sm font-medium tracking-widest uppercase"
             style={{ color: cores.acento }}
           >
             A nossa jornada
           </span>
           <h2
-            className="font-display text-3xl sm:text-4xl font-bold mt-2"
+            className="font-display text-2xl sm:text-3xl font-bold mt-2"
             style={{ color: cores.titulo }}
           >
             Momentos que ficaram
           </h2>
           <p
-            className="text-sm mt-2"
+            className="text-xs sm:text-sm mt-2"
             style={{ color: cores.sub }}
           >
-            Passe o mouse para ver melhor
+            Toque para ver melhor
           </p>
         </motion.div>
 
         {/* Grid de polaroids */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-8">
           {momentos.map((momento, index) => (
             <PolaroidCard
               key={momento.id}

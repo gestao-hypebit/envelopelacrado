@@ -25,7 +25,7 @@ export default function PlayerMusica({ musicaUrl, tema = 'classico' }: PlayerMus
   const thumbUrl = ytId ? `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg` : ''
 
   return (
-    <section className="py-16 px-4">
+    <section className="py-10 sm:py-16 px-4">
       <div className="max-w-lg mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

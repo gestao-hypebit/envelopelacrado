@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 interface Coracao {
   id: number
@@ -17,39 +18,41 @@ let uid = 0
 
 export default function CoracoesFlutantes() {
   const [coracoes, setCoracoes] = useState<Coracao[]>([])
+  const isMobile = useIsMobile()
+
+  // Mobile: máx 4 corações, intervalo 5s | Desktop: máx 9, intervalo 2.8s
+  const MAX = isMobile ? 4 : 9
+  const INTERVAL = isMobile ? 5000 : 2800
 
   useEffect(() => {
     const spawn = () => {
       setCoracoes(prev => {
-        if (prev.length >= 9) return prev
+        if (prev.length >= MAX) return prev
         return [
           ...prev,
           {
             id: uid++,
             x: 4 + Math.random() * 92,
-            size: 14 + Math.random() * 13,
+            size: isMobile ? 12 + Math.random() * 8 : 14 + Math.random() * 13,
             dur: 9 + Math.random() * 5,
-            drift: (Math.random() - 0.5) * 80,
+            drift: (Math.random() - 0.5) * (isMobile ? 50 : 80),
             emoji: EMOJIS[Math.floor(Math.random() * EMOJIS.length)],
-            opacity: 0.28 + Math.random() * 0.32,
+            opacity: isMobile ? 0.22 + Math.random() * 0.22 : 0.28 + Math.random() * 0.32,
           },
         ]
       })
     }
 
-    // Primeiros 3 escalonados, depois intervalo regular
-    const t1 = setTimeout(spawn, 0)
-    const t2 = setTimeout(spawn, 900)
-    const t3 = setTimeout(spawn, 2000)
-    const intervalo = setInterval(spawn, 2800)
+    const iniciais = isMobile
+      ? [setTimeout(spawn, 0), setTimeout(spawn, 1800)]
+      : [setTimeout(spawn, 0), setTimeout(spawn, 900), setTimeout(spawn, 2000)]
+    const intervalo = setInterval(spawn, INTERVAL)
 
     return () => {
-      clearTimeout(t1)
-      clearTimeout(t2)
-      clearTimeout(t3)
+      iniciais.forEach(clearTimeout)
       clearInterval(intervalo)
     }
-  }, [])
+  }, [isMobile, MAX, INTERVAL])
 
   const remove = (id: number) =>
     setCoracoes(prev => prev.filter(c => c.id !== id))

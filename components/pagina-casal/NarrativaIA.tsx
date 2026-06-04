@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
 
 interface NarrativaIAProps {
@@ -17,6 +17,7 @@ const CORES: Record<string, { texto: string; acento: string; sub: string }> = {
 
 export default function NarrativaIA({ narrativa, tema = 'classico' }: NarrativaIAProps) {
   const { texto: corTexto, acento: corAcento, sub: corSub } = CORES[tema] ?? CORES.classico
+  const reduceMotion = useReducedMotion()
 
   const paragrafos = narrativa
     .split('\n')
@@ -24,7 +25,7 @@ export default function NarrativaIA({ narrativa, tema = 'classico' }: NarrativaI
     .filter((p) => p.length > 0)
 
   return (
-    <section className="py-20 px-4">
+    <section className="py-12 sm:py-20 px-4">
       <div className="max-w-3xl mx-auto">
 
         {/* Cabeçalho */}
@@ -33,7 +34,7 @@ export default function NarrativaIA({ narrativa, tema = 'classico' }: NarrativaI
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="flex items-center gap-3 mb-16 justify-center"
+          className="flex items-center gap-3 mb-10 sm:mb-16 justify-center"
         >
           <div className="h-px flex-1" style={{ background: `linear-gradient(to right, transparent, ${corAcento})` }} />
           <div className="flex items-center gap-2">
@@ -54,7 +55,7 @@ export default function NarrativaIA({ narrativa, tema = 'classico' }: NarrativaI
             style={{ background: `linear-gradient(to bottom, transparent, ${corAcento}44, transparent)` }}
           />
 
-          <div className="space-y-12">
+          <div className="space-y-7 sm:space-y-12">
             {paragrafos.map((paragrafo, index) => {
               const esquerda = index % 2 === 0
               const ultimo = index === paragrafos.length - 1
@@ -62,11 +63,11 @@ export default function NarrativaIA({ narrativa, tema = 'classico' }: NarrativaI
               return (
                 <motion.div
                   key={index}
-                  initial={{ opacity: 0, x: esquerda ? -30 : 30 }}
+                  initial={{ opacity: 0, x: reduceMotion ? 0 : (esquerda ? -20 : 20) }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true, margin: '-40px' }}
-                  transition={{ duration: 0.7, delay: 0.1 }}
-                  className={`relative md:w-[46%] ${esquerda ? 'md:ml-0 md:mr-auto md:pr-8' : 'md:ml-auto md:mr-0 md:pl-8'}`}
+                  transition={{ duration: reduceMotion ? 0.3 : 0.7, delay: 0.1 }}
+                  className={`relative md:w-[46%] ${esquerda ? 'md:ml-0 md:mr-auto md:pr-8' : 'md:ml-auto md:mr-0 md:pl-8'} ${esquerda ? 'narrativa-esquerda' : 'narrativa-direita'}`}
                 >
                   {/* Ponto na linha central */}
                   <div
@@ -76,12 +77,11 @@ export default function NarrativaIA({ narrativa, tema = 'classico' }: NarrativaI
 
                   {/* Texto */}
                   <p
-                    className="leading-loose text-lg sm:text-xl"
+                    className="leading-loose text-base sm:text-lg"
                     style={{
                       fontFamily: "'Cormorant Garamond', Georgia, serif",
                       color: corTexto,
                       fontStyle: ultimo ? 'italic' : 'normal',
-                      textAlign: esquerda ? 'right' : 'left',
                     }}
                   >
                     {index === 0 && (
@@ -90,7 +90,7 @@ export default function NarrativaIA({ narrativa, tema = 'classico' }: NarrativaI
                         style={{
                           color: corAcento,
                           fontFamily: "'Playfair Display', Georgia, serif",
-                          fontSize: '4rem',
+                          fontSize: 'clamp(2.6rem, 9vw, 4rem)',
                           lineHeight: '0.8',
                           marginTop: '0.1em',
                         }}
@@ -112,7 +112,7 @@ export default function NarrativaIA({ narrativa, tema = 'classico' }: NarrativaI
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="text-center mt-16"
+          className="text-center mt-10 sm:mt-16"
         >
           <div className="inline-flex items-center gap-3">
             <div className="w-10 h-px" style={{ background: corAcento, opacity: 0.4 }} />

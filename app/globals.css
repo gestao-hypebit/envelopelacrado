@@ -86,6 +86,14 @@ body {
   background: linear-gradient(135deg, #0D0D0D 0%, #1a1a1a 100%);
 }
 
+/* Narrativa — alinhamento alternado só em md+ */
+.narrativa-esquerda { text-align: left; }
+.narrativa-direita  { text-align: left; }
+@media (min-width: 768px) {
+  .narrativa-esquerda { text-align: right; }
+  .narrativa-direita  { text-align: left;  }
+}
+
 /* Corações flutuantes — CSS puro para rodar no compositor (sem JS por frame) */
 @keyframes floatCoracao {
   0%   { transform: translateY(0)       translateX(0)                         scale(0.35); opacity: 0; }

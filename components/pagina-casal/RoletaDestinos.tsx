@@ -255,8 +255,8 @@ export default function RoletaDestinos({ tema }: Props) {
   }, [])
 
   return (
-    <section className="py-14 px-4" style={{ background: c.section }}>
-      <div className="max-w-md mx-auto text-center space-y-6">
+    <section className="py-10 sm:py-14 px-4" style={{ background: c.section }}>
+      <div className="max-w-sm mx-auto text-center space-y-5">
         <div>
           <h2 className="font-display text-2xl font-bold mb-1" style={{ color: c.titulo }}>
             Para onde vamos hoje?
@@ -285,10 +285,10 @@ export default function RoletaDestinos({ tema }: Props) {
           />
           <canvas
             ref={canvasRef}
-            width={340}
-            height={340}
+            width={300}
+            height={300}
             className="rounded-full"
-            style={{ display: 'block' }}
+            style={{ display: 'block', maxWidth: '82vw', maxHeight: '82vw' }}
           />
         </div>
 
@@ -304,7 +304,7 @@ export default function RoletaDestinos({ tema }: Props) {
               className="rounded-2xl px-6 py-4"
               style={{ background: c.resultBg, border: `1px solid ${c.resultBorder}` }}
             >
-              <p className="font-display text-lg font-bold" style={{ color: c.resultText }}>
+              <p className="font-display text-base sm:text-lg font-bold" style={{ color: c.resultText }}>
                 {resultado}
               </p>
             </motion.div>

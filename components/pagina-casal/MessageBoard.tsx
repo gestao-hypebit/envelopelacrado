@@ -51,7 +51,7 @@ export default function MessageBoard({ pageId, respostas: respostasIniciais, tem
   }
 
   return (
-    <section className="py-16 px-4">
+    <section className="py-10 sm:py-16 px-4">
       <div className="max-w-xl mx-auto">
         {/* Mensagens existentes */}
         {respostas.length > 0 && (
@@ -67,7 +67,7 @@ export default function MessageBoard({ pageId, respostas: respostasIniciais, tem
                 key={resposta.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-2xl p-5 border border-[#F5EDE3]"
+                className="rounded-2xl p-4 border border-[#F5EDE3]"
                 style={{ background: escuro ? '#1a1a1a' : 'white' }}
               >
                 <p
@@ -128,7 +128,7 @@ export default function MessageBoard({ pageId, respostas: respostasIniciais, tem
                   initial={{ opacity: 0, y: 20, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="rounded-2xl border border-[#F5EDE3] p-6 text-left shadow-lg"
+                  className="rounded-2xl border border-[#F5EDE3] p-4 sm:p-6 text-left shadow-lg"
                   style={{ background: escuro ? '#1a1a1a' : 'white' }}
                 >
                   <h3
