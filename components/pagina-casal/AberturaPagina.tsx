@@ -9,6 +9,7 @@ interface Props {
   nome2: string
   tema?: string
   children: React.ReactNode
+  autoAbrir?: boolean
 }
 
 interface Particula {
@@ -23,8 +24,8 @@ interface Particula {
 
 const EMOJIS = ['❤️', '💕', '💗', '💖', '✨', '💫', '🌸', '💝']
 
-export default function AberturaPagina({ nome1, nome2, tema = 'classico', children }: Props) {
-  const [fase, setFase] = useState<'fechado' | 'abrindo' | 'aberto'>('fechado')
+export default function AberturaPagina({ nome1, nome2, tema = 'classico', children, autoAbrir = false }: Props) {
+  const [fase, setFase] = useState<'fechado' | 'abrindo' | 'aberto'>(autoAbrir ? 'aberto' : 'fechado')
   const [particulas, setParticulas] = useState<Particula[]>([])
   const escuro = tema === 'escuro'
 

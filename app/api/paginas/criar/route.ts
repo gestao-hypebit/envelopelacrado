@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { gerarSlug } from '@/lib/utils'
+import { generatePreviewToken } from '@/lib/preview-token'
 
 export async function POST(req: NextRequest) {
   const supabase = createClient(
@@ -63,5 +64,9 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  return NextResponse.json({ id: pagina.id, slug: pagina.slug })
+  return NextResponse.json({
+    id: pagina.id,
+    slug: pagina.slug,
+    previewToken: generatePreviewToken(pagina.id),
+  })
 }

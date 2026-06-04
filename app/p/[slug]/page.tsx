@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { verifyPreviewToken } from '@/lib/preview-token'
 import AberturaPagina from '@/components/pagina-casal/AberturaPagina'
 import ContadorRelacionamento from '@/components/pagina-casal/ContadorRelacionamento'
 import NarrativaIA from '@/components/pagina-casal/NarrativaIA'
@@ -14,6 +15,7 @@ import Link from 'next/link'
 
 interface Props {
   params: Promise<{ slug: string }>
+  searchParams: Promise<{ preview?: string; pt?: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -34,26 +36,54 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function PaginaCasal({ params }: Props) {
+export default async function PaginaCasal({ params, searchParams }: Props) {
   const { slug } = await params
-  const supabase = await createClient()
+  const { preview, pt: previewToken } = await searchParams
+  const isPreview = preview === '1'
 
-  const { data: pagina } = await supabase
-    .from('pages')
-    .select('*')
-    .eq('slug', slug)
-    .eq('status', 'active')
-    .single()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let pagina: any = null
+
+  if (isPreview) {
+    // Preview requer token HMAC válido — sem ele, 404 imediato
+    if (!previewToken) notFound()
+
+    const admin = await createServiceClient()
+    const limite = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
+    const { data } = await admin
+      .from('pages')
+      .select('*')
+      .eq('slug', slug)
+      .gte('created_at', limite)
+      .single()
+
+    // Valida token contra o pageId real
+    if (!data || !verifyPreviewToken(data.id, previewToken)) notFound()
+
+    pagina = data
+  } else {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('pages')
+      .select('*')
+      .eq('slug', slug)
+      .eq('status', 'active')
+      .single()
+    pagina = data
+  }
 
   if (!pagina) notFound()
 
-  const { data: momentos } = await supabase
+  // Usa service role para preview (RLS bypass), anon para produção
+  const db = isPreview ? await createServiceClient() : await createClient()
+
+  const { data: momentos } = await db
     .from('momentos')
     .select('*')
     .eq('page_id', pagina.id)
     .order('ordem', { ascending: true })
 
-  const { data: respostas } = await supabase
+  const { data: respostas } = await db
     .from('respostas')
     .select('*')
     .eq('page_id', pagina.id)
@@ -71,7 +101,7 @@ export default async function PaginaCasal({ params }: Props) {
   const sec = SEC[tema] ?? SEC.classico
 
   return (
-    <AberturaPagina nome1={pagina.nome_pessoa1} nome2={pagina.nome_pessoa2} tema={tema}>
+    <AberturaPagina nome1={pagina.nome_pessoa1} nome2={pagina.nome_pessoa2} tema={tema} autoAbrir={isPreview}>
     <main style={{ background: sec.base, minHeight: '100vh', position: 'relative' }}>
 
       {/* Grain texture overlay — fixo, sutil, cobre toda a página */}
