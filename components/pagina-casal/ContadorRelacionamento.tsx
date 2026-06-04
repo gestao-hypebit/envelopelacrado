@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useEffect, useRef } from 'react'
+import { motion, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion'
 import Image from 'next/image'
 import { useContador } from '@/hooks/useContador'
 
@@ -24,45 +24,60 @@ const CORES: Record<string, { texto: string; acento: string; label: string }> = 
   classico: { texto: '#F0E4D4', acento: '#C9768F', label: 'rgba(240,228,212,0.42)' },
   escuro:   { texto: '#E8D5B7', acento: '#C9A96E', label: 'rgba(232,213,183,0.42)' },
   pastel:   { texto: '#E8E0F0', acento: '#9b6fbd', label: 'rgba(232,224,240,0.42)' },
-  floral:   { texto: '#E0F0De', acento: '#7a9e78', label: 'rgba(224,240,222,0.42)' },
+  floral:   { texto: '#E0F0DE', acento: '#7a9e78', label: 'rgba(224,240,222,0.42)' },
 }
 
 const CARD_W = 200
 const CARD_H = 260
-const OFFSET  = 80   // deslocamento lateral das fotos do lado
+const OFFSET  = 80
 
+/* ── Carrossel com tilt 3D ── */
 function FotoCarousel({ fotos, acento }: { fotos: string[]; acento: string }) {
   const [atual, setAtual] = useState(0)
   const total = fotos.length
 
-  // Auto-avança a cada 4 s quando há mais de uma foto
+  // Motion values para tilt 3D — não provocam re-render
+  const rotX = useMotionValue(0)
+  const rotY = useMotionValue(0)
+  const springRX = useSpring(rotX, { stiffness: 320, damping: 28 })
+  const springRY = useSpring(rotY, { stiffness: 320, damping: 28 })
+
   useEffect(() => {
     if (total <= 1) return
-    const t = setInterval(() => setAtual(a => (a + 1) % total), 4000)
+    const t = setInterval(() => setAtual(a => (a + 1) % total), 4500)
     return () => clearInterval(t)
   }, [total])
 
   if (total === 0) return null
 
-  // Diferença circular em [-floor(total/2), floor(total/2)]
   const getDiff = (idx: number) => {
     let d = ((idx - atual) % total + total) % total
     if (d > total / 2) d -= total
     return d
   }
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const cx = rect.left + rect.width / 2
+    const cy = rect.top + rect.height / 2
+    rotX.set(((e.clientY - cy) / (rect.height / 2)) * -9)
+    rotY.set(((e.clientX - cx) / (rect.width / 2)) * 11)
+  }
+
+  const handleMouseLeave = () => {
+    rotX.set(0)
+    rotY.set(0)
+  }
+
   return (
     <div className="flex flex-col items-center mb-8">
-      {/* Container das fotos — overflow hidden para cortar as laterais */}
       <div
         className="relative overflow-hidden"
         style={{ width: CARD_W + OFFSET * 2, height: CARD_H }}
       >
         {fotos.map((foto, idx) => {
           const d = getDiff(idx)
-          // Mostra apenas current (0), prev (-1) e next (1)
           if (Math.abs(d) > 1) return null
-
           const isCenter = d === 0
 
           return (
@@ -79,6 +94,10 @@ function FotoCarousel({ fotos, acento }: { fotos: string[]; acento: string }) {
                 boxShadow: isCenter
                   ? `0 16px 48px rgba(0,0,0,0.65), 0 0 0 2px ${acento}50`
                   : '0 6px 24px rgba(0,0,0,0.45)',
+                transformPerspective: 600,
+                // Tilt 3D só no card central via MotionValues
+                rotateX: isCenter ? springRX : 0,
+                rotateY: isCenter ? springRY : 0,
               }}
               animate={{
                 x: d * OFFSET,
@@ -87,13 +106,14 @@ function FotoCarousel({ fotos, acento }: { fotos: string[]; acento: string }) {
                 zIndex: isCenter ? 3 : 1,
               }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              onMouseMove={isCenter ? handleMouseMove : undefined}
+              onMouseLeave={isCenter ? handleMouseLeave : undefined}
               onClick={() => {
                 if (d === -1) setAtual(a => (a - 1 + total) % total)
                 if (d ===  1) setAtual(a => (a + 1) % total)
               }}
             >
               <Image src={foto} alt="" fill className="object-cover object-center" sizes="200px" />
-              {/* Overlay escuro nas fotos laterais */}
               {!isCenter && (
                 <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.38)' }} />
               )}
@@ -102,7 +122,7 @@ function FotoCarousel({ fotos, acento }: { fotos: string[]; acento: string }) {
         })}
       </div>
 
-      {/* Dots indicadores */}
+      {/* Dots */}
       {total > 1 && (
         <div className="flex items-center gap-1.5 mt-4">
           {fotos.map((_, i) => (
@@ -121,75 +141,64 @@ function FotoCarousel({ fotos, acento }: { fotos: string[]; acento: string }) {
   )
 }
 
+/* ── Componente principal ── */
 export default function ContadorRelacionamento({
-  dataInicio,
-  nome1,
-  nome2,
-  tema = 'classico',
-  fotos = [],
+  dataInicio, nome1, nome2, tema = 'classico', fotos = [],
 }: Props) {
   const { anos, meses, dias, horas, minutos, segundos } = useContador(dataInicio)
   const cores = CORES[tema] ?? CORES.classico
   const temFotos = fotos.length > 0
+  const heroRef = useRef<HTMLDivElement>(null)
+
+  // Parallax — bokeh movem mais devagar que o conteúdo ao scrollar
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  })
+  const bokeh1Y = useTransform(scrollYProgress, [0, 1], ['0%', '-45%'])
+  const bokeh2Y = useTransform(scrollYProgress, [0, 1], ['0%', '-28%'])
 
   const partesData = [
     anos > 0 ? `${anos} ${anos === 1 ? 'ano' : 'anos'}` : null,
     meses > 0 ? `${meses} ${meses === 1 ? 'mês' : 'meses'}` : null,
     `${dias} ${dias === 1 ? 'dia' : 'dias'}`,
-  ]
-    .filter(Boolean)
-    .join(' · ')
+  ].filter(Boolean).join(' · ')
 
-  const tempo = `${String(horas).padStart(2, '0')}h ${String(minutos).padStart(2, '0')}min ${String(segundos).padStart(2, '0')}s`
+  const tempo = `${String(horas).padStart(2,'0')}h ${String(minutos).padStart(2,'0')}min ${String(segundos).padStart(2,'0')}s`
 
   return (
     <div
+      ref={heroRef}
       className="relative flex items-center justify-center text-center overflow-hidden"
-      style={{
-        background: HERO_BG[tema] ?? HERO_BG.classico,
-        minHeight: '100svh',
-        paddingTop: 64,
-        paddingBottom: 64,
-      }}
+      style={{ background: HERO_BG[tema] ?? HERO_BG.classico, minHeight: '100svh', paddingTop: 64, paddingBottom: 64 }}
     >
-      {/* Bokeh de fundo */}
+      {/* Bokeh com parallax */}
       <motion.div
         className="absolute rounded-full pointer-events-none"
         style={{
-          width: 380, height: 380,
-          left: '-8%', top: '-12%',
-          background: cores.acento,
-          filter: 'blur(120px)',
-          opacity: 0.13,
+          width: 380, height: 380, left: '-8%', top: '-12%',
+          background: cores.acento, filter: 'blur(120px)', opacity: 0.13,
+          y: bokeh1Y,
         }}
-        animate={{ x: [0, 18, 0], y: [0, -12, 0] }}
-        transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
         className="absolute rounded-full pointer-events-none"
         style={{
-          width: 300, height: 300,
-          right: '-5%', bottom: '8%',
-          background: cores.acento,
-          filter: 'blur(100px)',
-          opacity: 0.10,
+          width: 300, height: 300, right: '-5%', bottom: '8%',
+          background: cores.acento, filter: 'blur(100px)', opacity: 0.10,
+          y: bokeh2Y,
         }}
-        animate={{ x: [0, -16, 0], y: [0, 12, 0] }}
-        transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut', delay: -8 }}
       />
 
       {/* Vinheta */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse 85% 85% at 50% 50%, transparent 40%, rgba(0,0,0,0.4) 100%)',
-        }}
+        style={{ background: 'radial-gradient(ellipse 85% 85% at 50% 50%, transparent 40%, rgba(0,0,0,0.4) 100%)' }}
       />
 
       {/* Conteúdo */}
       <div className="relative z-10 px-6 max-w-xl mx-auto w-full flex flex-col items-center">
 
-        {/* Carrossel de fotos */}
         {temFotos && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -200,37 +209,24 @@ export default function ContadorRelacionamento({
           </motion.div>
         )}
 
-        {/* Nomes */}
         <motion.h1
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: temFotos ? 0.4 : 0.2, type: 'spring', stiffness: 70, damping: 18 }}
           className="font-display font-bold tracking-tight mb-6"
-          style={{
-            color: cores.texto,
-            fontSize: 'clamp(2rem, 9vw, 4.4rem)',
-            lineHeight: 1.1,
-          }}
+          style={{ color: cores.texto, fontSize: 'clamp(2rem, 9vw, 4.4rem)', lineHeight: 1.1 }}
         >
-          {nome1}
-          <span style={{ color: cores.acento }}> & </span>
-          {nome2}
+          {nome1}<span style={{ color: cores.acento }}> & </span>{nome2}
         </motion.h1>
 
-        {/* Linha decorativa */}
         <motion.div
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
           transition={{ delay: temFotos ? 0.55 : 0.35, duration: 0.7 }}
           className="mb-6"
-          style={{
-            height: 1,
-            width: 64,
-            background: `linear-gradient(to right, transparent, ${cores.acento}, transparent)`,
-          }}
+          style={{ height: 1, width: 64, background: `linear-gradient(to right, transparent, ${cores.acento}, transparent)` }}
         />
 
-        {/* Badge — acima da contagem */}
         <motion.p
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -241,21 +237,16 @@ export default function ContadorRelacionamento({
           ✦ unidos há ✦
         </motion.p>
 
-        {/* Contagem em prosa */}
         <motion.p
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: temFotos ? 0.6 : 0.45 }}
+          transition={{ delay: temFotos ? 0.65 : 0.45 }}
           className="font-display font-bold mb-3"
-          style={{
-            color: cores.texto,
-            fontSize: 'clamp(1.3rem, 5vw, 2.4rem)',
-          }}
+          style={{ color: cores.texto, fontSize: 'clamp(1.3rem, 5vw, 2.4rem)' }}
         >
           {partesData}
         </motion.p>
 
-        {/* Relógio ticking */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -266,7 +257,6 @@ export default function ContadorRelacionamento({
           {tempo}
         </motion.p>
 
-        {/* Rodapé */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

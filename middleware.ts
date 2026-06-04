@@ -34,13 +34,6 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
 
-  // Proteger o dashboard — redirecionar para /criar se não autenticado
-  if (pathname.startsWith('/dashboard') && !user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/criar'
-    return NextResponse.redirect(url)
-  }
-
   return supabaseResponse
 }
 

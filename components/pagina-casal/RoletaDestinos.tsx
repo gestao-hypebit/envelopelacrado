@@ -3,16 +3,33 @@
 import { useRef, useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
+// Texto completo — exibido no card de resultado
 const SUGESTOES = [
-  'Jantar novo',
+  'Jantar especial',
   'Cinema',
-  'Parque',
+  'Passeio no parque',
   'Cozinhar juntos',
   'Maratona de série',
-  'Museu',
+  'Museu ou exposição',
   'Piquenique',
   'Noite de jogos',
   'Café na cama',
+  'Explorar um bairro',
+  'Karaokê',
+  'Spa caseiro',
+]
+
+// Texto curto — exibido dentro da roda (máx ~11 chars)
+const SUGESTOES_RODA = [
+  'Jantar',
+  'Cinema',
+  'Parque',
+  'Cozinhar',
+  'Maratona',
+  'Museu',
+  'Piquenique',
+  'Noite jogos',
+  'Café cama',
   'Bairro novo',
   'Karaokê',
   'Spa caseiro',
@@ -168,20 +185,20 @@ export default function RoletaDestinos({ tema }: Props) {
       ctx.rotate(start + slice / 2)
       ctx.textAlign = 'right'
       ctx.fillStyle = textColor
-      ctx.font = `bold 9.5px Inter, sans-serif`
-      ctx.shadowColor = 'rgba(0,0,0,0.15)'
+      ctx.font = `bold 12px Inter, sans-serif`
+      ctx.shadowColor = 'rgba(0,0,0,0.2)'
       ctx.shadowBlur = 2
-      ctx.fillText(SUGESTOES[i], r - 8, 4)
+      ctx.fillText(SUGESTOES_RODA[i], r - 14, 4.5)
       ctx.restore()
     }
 
     // círculo central
     ctx.beginPath()
-    ctx.arc(cx, cy, 18, 0, 2 * Math.PI)
+    ctx.arc(cx, cy, 22, 0, 2 * Math.PI)
     ctx.fillStyle = c.btn
     ctx.fill()
     ctx.strokeStyle = '#fff'
-    ctx.lineWidth = 2
+    ctx.lineWidth = 2.5
     ctx.stroke()
   }
 
@@ -239,7 +256,7 @@ export default function RoletaDestinos({ tema }: Props) {
 
   return (
     <section className="py-14 px-4" style={{ background: c.section }}>
-      <div className="max-w-sm mx-auto text-center space-y-6">
+      <div className="max-w-md mx-auto text-center space-y-6">
         <div>
           <h2 className="font-display text-2xl font-bold mb-1" style={{ color: c.titulo }}>
             Para onde vamos hoje?
@@ -255,24 +272,23 @@ export default function RoletaDestinos({ tema }: Props) {
           <div
             className="absolute z-10"
             style={{
-              top: -2,
+              top: -4,
               left: '50%',
               transform: 'translateX(-50%)',
               width: 0,
               height: 0,
-              borderLeft: '10px solid transparent',
-              borderRight: '10px solid transparent',
-              borderTop: `22px solid ${c.ponteiro}`,
-              filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.25))',
+              borderLeft: '13px solid transparent',
+              borderRight: '13px solid transparent',
+              borderTop: `28px solid ${c.ponteiro}`,
+              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.35))',
             }}
           />
           <canvas
             ref={canvasRef}
-            width={280}
-            height={280}
+            width={340}
+            height={340}
             className="rounded-full"
             style={{ display: 'block' }}
-            onMouseEnter={() => {}}
           />
         </div>
 

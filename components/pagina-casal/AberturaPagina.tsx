@@ -42,8 +42,39 @@ export default function AberturaPagina({ nome1, nome2, tema = 'classico', childr
     )
   }, [])
 
-  const handleAbrir = () => {
+  const handleAbrir = async () => {
     setFase('abrindo')
+
+    // Confetti burst ao abrir
+    const confetti = (await import('canvas-confetti')).default
+    confetti({
+      particleCount: 130,
+      spread: 85,
+      origin: { x: 0.5, y: 0.55 },
+      colors: ['#C9768F', '#F5EDE3', '#E8C8B0', '#ffffff', '#ffb3c8', '#C9A96E'],
+      scalar: 1.1,
+      disableForReducedMotion: true,
+    })
+    // Segundo burst levemente depois
+    setTimeout(() => {
+      confetti({
+        particleCount: 60,
+        spread: 55,
+        origin: { x: 0.3, y: 0.6 },
+        colors: ['#C9768F', '#F5EDE3', '#ffffff'],
+        scalar: 0.9,
+        disableForReducedMotion: true,
+      })
+      confetti({
+        particleCount: 60,
+        spread: 55,
+        origin: { x: 0.7, y: 0.6 },
+        colors: ['#C9A96E', '#E8C8B0', '#ffffff'],
+        scalar: 0.9,
+        disableForReducedMotion: true,
+      })
+    }, 350)
+
     setTimeout(() => setFase('aberto'), 2500)
   }
 
@@ -287,8 +318,7 @@ export default function AberturaPagina({ nome1, nome2, tema = 'classico', childr
                     style={{
                       position: 'absolute',
                       bottom: -26,
-                      left: '50%',
-                      transform: 'translateX(-50%)',
+                      left: 'calc(50% - 27px)',
                       width: 54,
                       height: 54,
                       borderRadius: '50%',

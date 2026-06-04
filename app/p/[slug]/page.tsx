@@ -98,43 +98,79 @@ export default async function PaginaCasal({ params }: Props) {
 
       {/* Narrativa da IA — dark alt */}
       {pagina.narrativa_ia && (
-        <div style={{ background: sec.darkAlt }}>
-          <NarrativaIA narrativa={pagina.narrativa_ia} tema={tema} />
-        </div>
+        <>
+          <div style={{ height: 56, background: `linear-gradient(to bottom, ${sec.dark}, ${sec.darkAlt})` }} />
+          <div style={{ background: sec.darkAlt }}>
+            <NarrativaIA narrativa={pagina.narrativa_ia} tema={tema} />
+          </div>
+        </>
       )}
 
-      {/* Galeria de fotos — light (contraste) */}
+      {/* Galeria de fotos — light */}
       {momentos && momentos.length > 0 && (
-        <div style={{ background: sec.light }}>
-          <GaleriaFotos momentos={momentos as Momento[]} tema={tema} />
-        </div>
+        <>
+          <div style={{ height: 72, background: `linear-gradient(to bottom, ${sec.darkAlt}, ${sec.light})` }} />
+          <div style={{ background: sec.light }}>
+            <GaleriaFotos momentos={momentos as Momento[]} tema={tema} />
+          </div>
+        </>
       )}
 
       {/* Linha do tempo — dark */}
       {momentos && momentos.length > 0 && (
-        <div style={{ background: sec.dark }}>
-          <TimeLine momentos={momentos as Momento[]} tema={tema} />
-        </div>
+        <>
+          <div style={{ height: 72, background: `linear-gradient(to bottom, ${sec.light}, ${sec.dark})` }} />
+          <div style={{ background: sec.dark }}>
+            <TimeLine momentos={momentos as Momento[]} tema={tema} />
+          </div>
+        </>
       )}
 
       {/* Player de música — light */}
       {pagina.musica_url && (
-        <div style={{ background: sec.light }}>
-          <PlayerMusica musicaUrl={pagina.musica_url} tema={tema} />
-        </div>
+        <>
+          <div style={{ height: 64, background: `linear-gradient(to bottom, ${sec.dark}, ${sec.light})` }} />
+          <div style={{ background: sec.light }}>
+            <PlayerMusica musicaUrl={pagina.musica_url} tema={tema} />
+          </div>
+        </>
       )}
 
-      {/* Roleta de programas — dark (próprio bg via TEMA_CONFIG) */}
-      <RoletaDestinos tema={tema} />
+      {/* Roleta — dark */}
+      <>
+        <div style={{ height: 64, background: `linear-gradient(to bottom, ${pagina.musica_url ? sec.light : sec.dark}, ${sec.dark})` }} />
+        <RoletaDestinos tema={tema} />
+      </>
 
       {/* MessageBoard — light */}
-      <div style={{ background: sec.light }}>
-        <MessageBoard
-          pageId={pagina.id}
-          respostas={(respostas as Resposta[]) ?? []}
-          tema={tema}
-        />
-      </div>
+      <>
+        <div style={{ height: 64, background: `linear-gradient(to bottom, ${sec.dark}, ${sec.light})` }} />
+        <div style={{ background: sec.light }}>
+          <MessageBoard
+            pageId={pagina.id}
+            respostas={(respostas as Resposta[]) ?? []}
+            tema={tema}
+          />
+        </div>
+      </>
+
+      {/* Assinatura — dark base */}
+      <>
+        <div style={{ height: 64, background: `linear-gradient(to bottom, ${sec.light}, ${sec.base})` }} />
+        <div className="py-16 px-4 text-center" style={{ background: sec.base }}>
+          <p
+            className="italic"
+            style={{
+              fontFamily: 'var(--font-cormorant), Georgia, serif',
+              fontSize: 'clamp(1.6rem, 5vw, 2.4rem)',
+              color: sec.acento,
+              opacity: 0.85,
+            }}
+          >
+            Com todo meu amor, {pagina.nome_pessoa1} ♥
+          </p>
+        </div>
+      </>
 
       {/* Footer */}
       <footer className="py-10 text-center px-4" style={{ background: sec.footer }}>
