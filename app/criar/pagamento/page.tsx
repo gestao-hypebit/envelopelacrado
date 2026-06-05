@@ -35,8 +35,10 @@ function PagamentoContent() {
   const [pago, setPago] = useState(false)
   const [ativando, setAtivando] = useState(false)
   const [sdkPronto, setSdkPronto] = useState(false)
+  const [desafio3ds, setDesafio3ds] = useState<{ url: string; paymentId: string } | null>(null)
   const brickRef = useRef<any>(null)
   const pollingRef = useRef<NodeJS.Timeout | null>(null)
+  const polling3dsRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     const dados = sessionStorage.getItem('memoriai_step2')
@@ -64,6 +66,28 @@ function PagamentoContent() {
     return () => { if (pollingRef.current) clearInterval(pollingRef.current) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pix, pago])
+
+  // Polling para 3DS — aguarda o usuário completar o desafio do banco
+  useEffect(() => {
+    if (!desafio3ds || pago) return
+    polling3dsRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/pagamento/status?paymentId=${desafio3ds.paymentId}`)
+        const data = await res.json()
+        if (data.status === 'approved') {
+          clearInterval(polling3dsRef.current!)
+          setDesafio3ds(null)
+          await ativarPagina()
+        } else if (data.status === 'rejected' || data.status === 'cancelled') {
+          clearInterval(polling3dsRef.current!)
+          setDesafio3ds(null)
+          setErro('Verificação recusada pelo banco. Tente outro cartão ou use Pix.')
+        }
+      } catch { /* silencioso */ }
+    }, 3000)
+    return () => { if (polling3dsRef.current) clearInterval(polling3dsRef.current) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [desafio3ds, pago])
 
   // Inicializar Brick de cartão
   const inicializarBrick = useCallback(async () => {
@@ -113,6 +137,9 @@ function PagamentoContent() {
             if (!res.ok) throw new Error(data.error)
             if (data.status === 'approved') {
               await ativarPagina()
+            } else if (data.statusDetail === 'pending_challenge' && data.threeDsInfo?.external_resource_url) {
+              // Banco exige verificação 3DS — exibe iframe inline
+              setDesafio3ds({ url: data.threeDsInfo.external_resource_url, paymentId: String(data.paymentId) })
             } else if (data.status === 'in_process' || data.status === 'pending') {
               setErro('Pagamento em análise. Você receberá a confirmação em breve.')
             } else {
@@ -341,22 +368,47 @@ function PagamentoContent() {
 
             {aba === 'cartao' && (
               <motion.div key="cartao" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <div className="bg-white rounded-3xl border border-[#F5EDE3] p-6 shadow-lg space-y-4">
-                  {erro && (
-                    <div className="flex items-center gap-2 text-red-600 bg-red-50 rounded-xl p-3">
-                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                      <p className="text-sm">{erro}</p>
+                {/* Desafio 3DS — exibido quando o banco exige verificação extra */}
+                {desafio3ds ? (
+                  <div className="bg-white rounded-3xl border border-[#F5EDE3] p-6 shadow-lg space-y-4">
+                    <div className="text-center space-y-1">
+                      <p className="font-semibold text-gray-900">Verificação do seu banco</p>
+                      <p className="text-sm text-gray-500">
+                        Complete a autenticação solicitada pelo seu banco para finalizar o pagamento.
+                      </p>
                     </div>
-                  )}
-                  {!sdkPronto ? (
-                    <div className="flex items-center justify-center py-12">
-                      <Loader2 className="w-8 h-8 animate-spin text-[#C9768F]" />
+                    <div className="rounded-2xl overflow-hidden border border-[#F5EDE3]" style={{ minHeight: 400 }}>
+                      <iframe
+                        src={desafio3ds.url}
+                        width="100%"
+                        height="420"
+                        className="border-0 block"
+                        title="Verificação 3D Secure"
+                      />
                     </div>
-                  ) : (
-                    <div id="brick-cartao" />
-                  )}
-                  <Button variant="ghost" onClick={() => router.push('/criar/preview')} className="w-full text-sm">← Voltar ao preview</Button>
-                </div>
+                    <div className="flex items-center gap-2 bg-[#FEF2F5] rounded-xl p-3">
+                      <Loader2 className="w-4 h-4 animate-spin text-[#C9768F] flex-shrink-0" />
+                      <p className="text-sm text-[#C9768F]">Aguardando confirmação do banco...</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-3xl border border-[#F5EDE3] p-6 shadow-lg space-y-4">
+                    {erro && (
+                      <div className="flex items-center gap-2 text-red-600 bg-red-50 rounded-xl p-3">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                        <p className="text-sm">{erro}</p>
+                      </div>
+                    )}
+                    {!sdkPronto ? (
+                      <div className="flex items-center justify-center py-12">
+                        <Loader2 className="w-8 h-8 animate-spin text-[#C9768F]" />
+                      </div>
+                    ) : (
+                      <div id="brick-cartao" />
+                    )}
+                    <Button variant="ghost" onClick={() => router.push('/criar/preview')} className="w-full text-sm">← Voltar ao preview</Button>
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

@@ -10,6 +10,8 @@ import ContadorRelacionamento from '@/components/pagina-casal/ContadorRelacionam
 import NarrativaIA from '@/components/pagina-casal/NarrativaIA'
 import GaleriaFotos from '@/components/pagina-casal/GaleriaFotos'
 import TimeLine from '@/components/pagina-casal/TimeLine'
+import PlayerMusica from '@/components/pagina-casal/PlayerMusica'
+import RoletaDestinos from '@/components/pagina-casal/RoletaDestinos'
 
 const SEC: Record<string, { base: string; dark: string; darkAlt: string; light: string; acento: string }> = {
   classico: { base: '#0d0612', dark: '#100814', darkAlt: '#18081c', light: '#F5EDE3', acento: '#C9768F' },
@@ -249,6 +251,22 @@ export default function PreviewPage() {
                 </div>
               </>
             )}
+
+            {/* Nossa música */}
+            {dadosStep2.musicaUrl && (
+              <>
+                <div style={{ height: 40, background: `linear-gradient(to bottom, ${sec.dark}, ${sec.light})` }} />
+                <div style={{ background: sec.light }}>
+                  <PlayerMusica musicaUrl={dadosStep2.musicaUrl} tema={tema} />
+                </div>
+              </>
+            )}
+
+            {/* Roleta: Para onde vamos hoje? */}
+            <>
+              <div style={{ height: 40, background: `linear-gradient(to bottom, ${dadosStep2.musicaUrl ? sec.light : sec.dark}, ${sec.dark})` }} />
+              <RoletaDestinos tema={tema} />
+            </>
 
             {/* Assinatura final */}
             <div style={{ height: 40, background: `linear-gradient(to bottom, ${sec.dark}, ${sec.base})` }} />
