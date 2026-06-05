@@ -13,6 +13,7 @@ export default function UploadFotos() {
   const [momentos, setMomentos] = useState<MomentoComFoto[]>([])
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
+  const [errosFoto, setErrosFoto] = useState<boolean[]>([])
 
   useEffect(() => {
     const dadosStep2 = sessionStorage.getItem('memoriai_step2')
@@ -21,8 +22,20 @@ export default function UploadFotos() {
       return
     }
 
+    // Se o usuário voltou do step 4, restaura o que já tinha preenchido (com fotos)
+    const dadosStep3 = sessionStorage.getItem('memoriai_step3')
+    if (dadosStep3) {
+      try {
+        const step3 = JSON.parse(dadosStep3)
+        if (step3.momentos?.length > 0) {
+          setMomentos(step3.momentos)
+          return
+        }
+      } catch {}
+    }
+
+    // Primeira vez no step 3 — pré-popula com os momentos do formulário
     const dados: DadosCriacao = JSON.parse(dadosStep2)
-    // Pré-popula com os momentos do formulário
     const momentosIniciais: MomentoComFoto[] = dados.momentos.slice(0, 8).map((m) => ({
       titulo: m.titulo,
       descricao: m.descricao,
@@ -30,7 +43,6 @@ export default function UploadFotos() {
       foto_url: null,
     }))
 
-    // Garante pelo menos 1 slot vazio se não tiver momentos
     if (momentosIniciais.length === 0) {
       momentosIniciais.push({ titulo: '', descricao: '', data: '', foto_url: null })
     }
@@ -61,6 +73,17 @@ export default function UploadFotos() {
       return
     }
 
+    // Valida que todo momento com título tem foto
+    const novosErrosFoto = momentos.map(
+      (m) => m.titulo.trim().length > 0 && !m.arquivo && !m.foto_url
+    )
+    if (novosErrosFoto.some(Boolean)) {
+      setErrosFoto(novosErrosFoto)
+      setErro('Adicione uma foto em cada momento')
+      return
+    }
+
+    setErrosFoto([])
     setCarregando(true)
     setErro(null)
 
@@ -116,7 +139,18 @@ export default function UploadFotos() {
           key={index}
           momento={momento}
           index={index}
-          onChange={handleChange}
+          onChange={(i, campo, valor) => {
+            // Limpa o erro de foto ao adicionar uma
+            if (campo === 'arquivo' && valor) {
+              setErrosFoto((prev) => {
+                const next = [...prev]
+                next[i] = false
+                return next
+              })
+            }
+            handleChange(i, campo, valor)
+          }}
+          fotoObrigatoria={errosFoto[index] ?? false}
         />
       ))}
 

@@ -1,10 +1,11 @@
 'use client'
 
-import { useForm, useFieldArray } from 'react-hook-form'
+import { useForm, useFieldArray, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
-import { Plus, Trash2 } from 'lucide-react'
+import { useEffect } from 'react'
+import { Plus, Trash2, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -43,6 +44,7 @@ export default function FormularioHistoria() {
     register,
     handleSubmit,
     control,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -53,10 +55,35 @@ export default function FormularioHistoria() {
     },
   })
 
+  // Restaura dados se usuário voltou para este step
+  useEffect(() => {
+    const saved = sessionStorage.getItem('memoriai_step2')
+    if (!saved) return
+    try {
+      const dados = JSON.parse(saved)
+      reset({
+        nome1: dados.nome1 ?? '',
+        nome2: dados.nome2 ?? '',
+        email: dados.email ?? '',
+        dataInicio: dados.dataInicio ?? '',
+        comoSeConheceram: dados.comoSeConheceram ?? '',
+        momentos: dados.momentos?.length > 0
+          ? dados.momentos
+          : [{ titulo: '', descricao: '', data: '' }],
+        apelidos: dados.apelidos ?? '',
+        musicaUrl: dados.musicaUrl ?? '',
+        tema: dados.tema ?? 'classico',
+        tom: dados.tom ?? 'romantico',
+      })
+    } catch {}
+  }, [reset])
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'momentos',
   })
+
+  const momentosWatch = useWatch({ control, name: 'momentos' })
 
   const onSubmit = (data: FormData) => {
     const dadosFormatados: DadosCriacao = {
@@ -163,61 +190,91 @@ export default function FormularioHistoria() {
           <h3 className="font-display text-xl font-bold text-gray-900">
             Momentos marcantes
           </h3>
-          <span className="text-xs text-gray-400">{fields.length}/5</span>
+          <span className="text-xs text-gray-400">
+            {momentosWatch?.filter(m => m?.titulo?.trim()).length ?? 0}/{fields.length} preenchidos
+          </span>
         </div>
 
         <p className="text-sm text-gray-500">
-          Os momentos que a IA vai mencionar na narrativa. Seja específico!
+          Preencha os campos abaixo — cada momento é incluído automaticamente na narrativa da IA.
         </p>
 
         <div className="space-y-4">
-          {fields.map((field, index) => (
-            <div key={field.id} className="border border-[#F5EDE3] rounded-xl p-4 space-y-3 bg-[#FAFAF8]">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-[#C9768F]">
-                  Momento {index + 1}
-                </span>
-                {fields.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => remove(index)}
-                    className="text-red-400 hover:text-red-600 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+          {fields.map((field, index) => {
+            const titulo = momentosWatch?.[index]?.titulo?.trim() ?? ''
+            const preenchido = titulo.length >= 2
+
+            return (
+              <div
+                key={field.id}
+                className={`border rounded-xl p-4 space-y-3 transition-colors ${
+                  preenchido
+                    ? 'border-green-200 bg-green-50/40'
+                    : 'border-[#F5EDE3] bg-[#FAFAF8]'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {preenchido ? (
+                      <span className="flex items-center gap-1 text-xs font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                        <Check className="w-3 h-3" />
+                        Incluído na história
+                      </span>
+                    ) : (
+                      <span className="text-xs font-semibold text-[#C9768F]">
+                        Momento {index + 1}
+                      </span>
+                    )}
+                  </div>
+                  {fields.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => remove(index)}
+                      className="text-gray-300 hover:text-red-400 transition-colors"
+                      title="Remover este momento"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                <Input
+                  placeholder="Título do momento (ex: Primeira viagem juntos)"
+                  {...register(`momentos.${index}.titulo`)}
+                />
+                {errors.momentos?.[index]?.titulo && (
+                  <p className="text-red-500 text-xs">{errors.momentos[index]?.titulo?.message}</p>
                 )}
+                <Textarea
+                  placeholder="Descreve com detalhes... onde foi? o que sentiram? (opcional)"
+                  className="min-h-[80px]"
+                  {...register(`momentos.${index}.descricao`)}
+                />
+                <Input
+                  type="date"
+                  {...register(`momentos.${index}.data`)}
+                />
               </div>
-              <Input
-                placeholder="Título do momento (ex: Primeira viagem juntos)"
-                {...register(`momentos.${index}.titulo`)}
-              />
-              {errors.momentos?.[index]?.titulo && (
-                <p className="text-red-500 text-xs">{errors.momentos[index]?.titulo?.message}</p>
-              )}
-              <Textarea
-                placeholder="Descreve o momento com detalhes... (opcional)"
-                className="min-h-[80px]"
-                {...register(`momentos.${index}.descricao`)}
-              />
-              <Input
-                type="date"
-                {...register(`momentos.${index}.data`)}
-              />
-            </div>
-          ))}
+            )
+          })}
         </div>
 
-        {fields.length < 5 && (
+        {/* Botão de adicionar só aparece quando o último momento já tem título preenchido */}
+        {fields.length < 5 && (momentosWatch?.[fields.length - 1]?.titulo?.trim().length ?? 0) >= 2 && (
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={() => append({ titulo: '', descricao: '', data: '' })}
-            className="w-full"
+            className="w-full border-dashed border-[#C9768F] text-[#C9768F] hover:bg-[#C9768F]/5"
           >
             <Plus className="w-4 h-4" />
-            Adicionar momento
+            + Adicionar mais um momento
           </Button>
+        )}
+
+        {errors.momentos && typeof errors.momentos.message === 'string' && (
+          <p className="text-red-500 text-xs">{errors.momentos.message}</p>
         )}
       </div>
 

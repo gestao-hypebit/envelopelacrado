@@ -9,9 +9,10 @@ interface MomentoItemProps {
   momento: MomentoComFoto
   index: number
   onChange: (index: number, campo: keyof MomentoComFoto, valor: string | File | null) => void
+  fotoObrigatoria?: boolean
 }
 
-export default function MomentoItem({ momento, index, onChange }: MomentoItemProps) {
+export default function MomentoItem({ momento, index, onChange, fotoObrigatoria = false }: MomentoItemProps) {
   const [preview, setPreview] = useState<string | null>(momento.foto_url)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -32,7 +33,7 @@ export default function MomentoItem({ momento, index, onChange }: MomentoItemPro
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-[#F5EDE3] overflow-hidden">
+    <div className={`bg-white rounded-2xl border overflow-hidden transition-colors ${fotoObrigatoria ? 'border-red-300' : 'border-[#F5EDE3]'}`}>
       <div className="grid grid-cols-1 sm:grid-cols-3">
         {/* Área de foto */}
         <div className="sm:col-span-1 relative">
@@ -55,10 +56,16 @@ export default function MomentoItem({ momento, index, onChange }: MomentoItemPro
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
-              className="w-full aspect-square sm:h-full min-h-[120px] flex flex-col items-center justify-center gap-2 bg-[#FAFAF8] hover:bg-[#F5EDE3] transition-colors border-r border-[#F5EDE3]"
+              className={`w-full aspect-square sm:h-full min-h-[120px] flex flex-col items-center justify-center gap-2 transition-colors border-r ${
+                fotoObrigatoria
+                  ? 'bg-red-50 border-red-200 hover:bg-red-100'
+                  : 'bg-[#FAFAF8] border-[#F5EDE3] hover:bg-[#F5EDE3]'
+              }`}
             >
-              <ImagePlus className="w-8 h-8 text-[#C9768F] opacity-60" />
-              <span className="text-xs text-gray-400">Adicionar foto</span>
+              <ImagePlus className={`w-8 h-8 ${fotoObrigatoria ? 'text-red-400' : 'text-[#C9768F] opacity-60'}`} />
+              <span className={`text-xs font-medium ${fotoObrigatoria ? 'text-red-500' : 'text-gray-400'}`}>
+                {fotoObrigatoria ? 'Foto obrigatória' : 'Adicionar foto'}
+              </span>
             </button>
           )}
           <input
