@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true })
     }
 
-    // Ativar a página
+    // Registra o payment_id (evita reprocessamento pelo webhook)
     await supabase
       .from('pages')
       .update({
@@ -52,15 +52,18 @@ export async function POST(req: NextRequest) {
       })
       .eq('id', pageId)
 
-    // Buscar dados para enviar email
-    const { data: pagina } = await supabase
-      .from('pages')
-      .select('*')
-      .eq('id', pageId)
-      .single()
+    // Só envia email se o ativar (cliente) ainda não tinha ativado
+    // Se já estava active+paid_at, o email já foi enviado pelo ativar
+    if (paginaExistente?.status !== 'active') {
+      const { data: pagina } = await supabase
+        .from('pages')
+        .select('*')
+        .eq('id', pageId)
+        .single()
 
-    if (pagina) {
-      await enviarEmailConfirmacao(pagina as Pagina)
+      if (pagina) {
+        await enviarEmailConfirmacao(pagina as Pagina)
+      }
     }
 
     return NextResponse.json({ ok: true })

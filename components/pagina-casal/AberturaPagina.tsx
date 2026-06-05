@@ -26,6 +26,14 @@ const EMOJIS = ['❤️', '💕', '💗', '💖', '✨', '💫', '🌸', '💝']
 
 export default function AberturaPagina({ nome1, nome2, tema = 'classico', children, autoAbrir = false }: Props) {
   const [fase, setFase] = useState<'fechado' | 'abrindo' | 'aberto'>(autoAbrir ? 'aberto' : 'fechado')
+  // Envelope responsivo: máx 420px, com 20px de margem em cada lado
+  const [W, setW] = useState(360)
+  useEffect(() => {
+    const calc = () => setW(Math.min(420, window.innerWidth - 40))
+    calc()
+    window.addEventListener('resize', calc, { passive: true })
+    return () => window.removeEventListener('resize', calc)
+  }, [])
   const [particulas, setParticulas] = useState<Particula[]>([])
   const escuro = tema === 'escuro'
 
@@ -90,10 +98,12 @@ export default function AberturaPagina({ nome1, nome2, tema = 'classico', childr
   const corSub      = escuro ? '#8a6040' : '#A0785A'
   const corBorda    = escuro ? '#3d2828' : '#E8C8A8'
 
-  const W = 420
-  const H = 270
-  // A aba cobre os primeiros 52% do envelope (de cima pra baixo)
+  // Todas as medidas derivadas proporcionalmente de W
+  const H      = Math.round(W * (270 / 420))
   const FLAP_H = H * 0.52
+  const SEAL   = Math.round(W * 0.129)           // 54px em W=420
+  const sealBottom = -Math.round(SEAL * 0.48)    // -26px em SEAL=54
+  const ratio  = W / 420                          // fator de escala geral
 
   return (
     <>
@@ -265,26 +275,27 @@ export default function AberturaPagina({ nome1, nome2, tema = 'classico', childr
                     bottom: 0,
                     left: 0,
                     right: 0,
-                    top: FLAP_H + 32, // bem abaixo do lacre
+                    top: FLAP_H + Math.round(32 * ratio),
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    paddingBottom: 16,
-                    gap: 4,
+                    paddingBottom: Math.round(16 * ratio),
+                    gap: Math.round(4 * ratio),
                   }}>
                     <h1 style={{
                       fontFamily: "'Playfair Display', Georgia, serif",
-                      fontSize: nome1.length > 12 ? '1.7rem' : '2.1rem',
+                      fontSize: `${(nome1.length > 12 ? 1.55 : 1.9) * ratio}rem`,
                       fontWeight: 700,
                       color: corTitulo,
                       lineHeight: 1.1,
                       textAlign: 'center',
                       margin: 0,
+                      padding: '0 8px',
                     }}>
                       {nome1}
                     </h1>
-                    <p style={{ fontSize: 12, color: corSub, margin: 0 }}>
+                    <p style={{ fontSize: Math.max(10, Math.round(12 * ratio)), color: corSub, margin: 0 }}>
                       de <span style={{ color: corSelo, fontWeight: 600 }}>{nome2}</span>
                     </p>
                   </div>
@@ -318,10 +329,10 @@ export default function AberturaPagina({ nome1, nome2, tema = 'classico', childr
                   <motion.div
                     style={{
                       position: 'absolute',
-                      bottom: -26,
-                      left: 'calc(50% - 27px)',
-                      width: 54,
-                      height: 54,
+                      bottom: sealBottom,
+                      left: `calc(50% - ${SEAL / 2}px)`,
+                      width: SEAL,
+                      height: SEAL,
                       borderRadius: '50%',
                       background: `radial-gradient(circle at 38% 35%, ${corSelo}ee, ${corSelo}99)`,
                       boxShadow: `0 3px 14px ${corSelo}55, inset 0 1px 3px rgba(255,255,255,0.25), inset 0 -1px 2px rgba(0,0,0,0.15)`,
@@ -334,7 +345,7 @@ export default function AberturaPagina({ nome1, nome2, tema = 'classico', childr
                     animate={fase === 'fechado' ? { scale: [1, 1.06, 1], rotate: [0, 3, 0, -3, 0] } : {}}
                     transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                   >
-                    <span style={{ fontSize: '1.5rem', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}>
+                    <span style={{ fontSize: `${Math.round(ratio * 24)}px`, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}>
                       💌
                     </span>
                   </motion.div>
@@ -348,7 +359,7 @@ export default function AberturaPagina({ nome1, nome2, tema = 'classico', childr
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.8 }}
                       transition={{ delay: 1, duration: 0.5 }}
-                      style={{ display: 'flex', justifyContent: 'center', marginTop: 44 }}
+                      style={{ display: 'flex', justifyContent: 'center', marginTop: Math.round(44 * ratio) }}
                     >
                       <motion.button
                         whileHover={{ scale: 1.06, boxShadow: `0 8px 28px ${corSelo}50` }}

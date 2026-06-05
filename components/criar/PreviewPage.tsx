@@ -13,7 +13,6 @@ export default function PreviewPage() {
   const [gerando, setGerando] = useState(false)
   const [gerado, setGerado] = useState(false)
   const [erroGerado, setErroGerado] = useState(false)
-  const [salvando, setSalvando] = useState(false)
   const [dadosStep2, setDadosStep2] = useState<DadosCriacao | null>(null)
   const [dadosStep3, setDadosStep3] = useState<DadosFotos | null>(null)
   const [slugPreview, setSlugPreview] = useState<string | null>(null)
@@ -115,18 +114,10 @@ export default function PreviewPage() {
       setGerado(true)
       sessionStorage.setItem('memoriai_narrativa', texto)
 
-      // Atualiza narrativa no banco e recarrega o iframe
+      // Narrativa já foi salva no banco pela rota — força reload do iframe
       const slug = sessionStorage.getItem('memoriai_slug')
       if (slug) {
         setSlugPreview(slug)
-        if (dadosStep2?.email) {
-          await fetch('/api/paginas/atualizar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ slug, email: dadosStep2.email, campos: { narrativa_ia: texto } }),
-          }).catch(() => {})
-        }
-        // Força reload do iframe com narrativa atualizada
         setIframeKey(k => k + 1)
       }
     } catch {
@@ -145,25 +136,9 @@ export default function PreviewPage() {
     await gerarNarrativa({ ...dadosStep2, tom: novoTom as DadosCriacao['tom'] })
   }
 
-  const handleContinuar = async () => {
-    if (!dadosStep2 || !narrativa) return
-    setSalvando(true)
-    try {
-      const res = await fetch('/api/paginas/criar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dadosCriacao: dadosStep2, dadosFotos: dadosStep3, narrativa }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Erro ao salvar')
-      sessionStorage.setItem('memoriai_page_id', data.id)
-      sessionStorage.setItem('memoriai_slug', data.slug)
-      router.push('/criar/pagamento')
-    } catch {
-      alert('Erro ao salvar. Tente novamente.')
-    } finally {
-      setSalvando(false)
-    }
+  const handleContinuar = () => {
+    if (!gerado || !narrativa) return
+    router.push('/criar/pagamento')
   }
 
   if (!dadosStep2) return null
@@ -321,20 +296,16 @@ export default function PreviewPage() {
 
       {/* Ações */}
       <div className="flex gap-3">
-        <Button variant="outline" size="lg" onClick={() => router.push('/criar/fotos')} disabled={salvando || gerando}>
+        <Button variant="outline" size="lg" onClick={() => router.push('/criar/fotos')} disabled={gerando}>
           ← Voltar
         </Button>
         <Button
           size="lg"
           onClick={handleContinuar}
-          disabled={!gerado || gerando || salvando}
+          disabled={!gerado || gerando}
           className="flex-1 group"
         >
-          {salvando ? (
-            <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</>
-          ) : (
-            <><Check className="w-4 h-4" /> Ficou ótimo! Pagar R$ 19,90 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></>
-          )}
+          <Check className="w-4 h-4" /> Ficou ótimo! Pagar R$ 19,90 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </Button>
       </div>
     </div>

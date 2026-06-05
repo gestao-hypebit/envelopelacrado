@@ -11,14 +11,11 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-const LIMITE_PRE_PAGAMENTO = 2
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { pageId, ...dadosHistoria } = body
 
-    // Exige page_id — sem ele, bloqueia na hora
     if (!pageId) {
       return new Response(JSON.stringify({ error: 'Requisição inválida' }), {
         status: 400,
@@ -26,10 +23,9 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // Busca a página e verifica limites
     const { data: pagina, error } = await supabase
       .from('pages')
-      .select('status, geracoes_count')
+      .select('status')
       .eq('id', pageId)
       .single()
 
@@ -39,20 +35,6 @@ export async function POST(req: NextRequest) {
         headers: { 'Content-Type': 'application/json' },
       })
     }
-
-    // Página não ativa: aplica limite de gerações
-    if (pagina.status !== 'active' && (pagina.geracoes_count ?? 0) >= LIMITE_PRE_PAGAMENTO) {
-      return new Response(
-        JSON.stringify({ error: 'Limite de gerações atingido antes do pagamento' }),
-        { status: 429, headers: { 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // Incrementa o contador antes de gerar
-    await supabase
-      .from('pages')
-      .update({ geracoes_count: (pagina.geracoes_count ?? 0) + 1 })
-      .eq('id', pageId)
 
     const historia: HistoriaInput = {
       nome1: dadosHistoria.nome1,
@@ -70,12 +52,21 @@ export async function POST(req: NextRequest) {
       messages: [{ role: 'user', content: buildPrompt(historia) }],
     })
 
+    let textoCompleto = ''
     const readableStream = new ReadableStream({
       async start(controller) {
         for await (const chunk of stream) {
           if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
+            textoCompleto += chunk.delta.text
             controller.enqueue(new TextEncoder().encode(chunk.delta.text))
           }
+        }
+        // Salva no banco antes de fechar o stream para o iframe poder ler
+        if (textoCompleto) {
+          await supabase
+            .from('pages')
+            .update({ narrativa_ia: textoCompleto, updated_at: new Date().toISOString() })
+            .eq('id', pageId)
         }
         controller.close()
       },
