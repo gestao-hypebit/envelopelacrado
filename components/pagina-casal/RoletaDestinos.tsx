@@ -179,7 +179,6 @@ export default function RoletaDestinos({ tema }: Props) {
       ctx.lineWidth = 1.5
       ctx.stroke()
 
-      // texto
       ctx.save()
       ctx.translate(cx, cy)
       ctx.rotate(start + slice / 2)
