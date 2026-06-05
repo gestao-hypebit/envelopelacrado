@@ -1,16 +1,15 @@
 import { Resend } from 'resend'
 import type { Pagina } from '@/types'
-import { gerarQRCodeDataURL } from '@/lib/qrcode'
 
 export async function enviarEmailConfirmacao(page: Pagina) {
   if (!page.email_criador) return
 
   const resend  = new Resend(process.env.RESEND_API_KEY)
-  const baseUrl = process.env.NEXT_PUBLIC_URL ?? 'https://envelopelacrado.com.br'
+  const baseUrl = (process.env.NEXT_PUBLIC_URL ?? 'https://envelopelacrado.com.br').replace(/\/$/, '')
   const urlPagina = `${baseUrl}/p/${page.slug}`
 
-  // QR Code embutido como base64 — renderiza em todos os clientes de email
-  const qrDataUrl = await gerarQRCodeDataURL(urlPagina)
+  // URL pública para o QR Code — data: URIs são bloqueados pela maioria dos clientes de email
+  const qrDataUrl = `${baseUrl}/api/qrcode?url=${encodeURIComponent(urlPagina)}`
 
   const nome1 = page.nome_pessoa1
   const nome2 = page.nome_pessoa2
