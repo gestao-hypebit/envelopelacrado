@@ -105,6 +105,7 @@ function PagamentoContent() {
                 paymentMethodId: cardData.payment_method_id,
                 issuerId: cardData.issuer_id,
                 payer: cardData.payer,
+                additionalData: cardData.additional_data ?? null,
                 pageId,
               }),
             })
@@ -112,8 +113,20 @@ function PagamentoContent() {
             if (!res.ok) throw new Error(data.error)
             if (data.status === 'approved') {
               await ativarPagina()
+            } else if (data.status === 'in_process' || data.status === 'pending') {
+              setErro('Pagamento em análise. Você receberá a confirmação em breve.')
             } else {
-              setErro(`Pagamento ${data.status === 'rejected' ? 'recusado' : 'pendente'}. Tente outro cartão.`)
+              const MSGS: Record<string, string> = {
+                cc_rejected_insufficient_amount: 'Saldo insuficiente no cartão.',
+                cc_rejected_bad_filled_security_code: 'Código de segurança incorreto.',
+                cc_rejected_bad_filled_date: 'Data de validade incorreta.',
+                cc_rejected_bad_filled_card_number: 'Número do cartão incorreto.',
+                cc_rejected_call_for_authorize: 'Ligue para o banco para autorizar o pagamento.',
+                cc_rejected_card_disabled: 'Cartão bloqueado. Entre em contato com o banco.',
+                cc_rejected_duplicated_payment: 'Pagamento duplicado. Aguarde alguns minutos.',
+              }
+              const msg = MSGS[data.statusDetail] ?? 'Pagamento recusado. Tente outro cartão ou use Pix.'
+              setErro(msg)
             }
           } catch (err: any) {
             setErro(err.message || 'Erro ao processar cartão.')

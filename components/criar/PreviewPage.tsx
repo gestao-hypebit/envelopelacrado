@@ -1,11 +1,22 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Loader2, RefreshCw, ArrowRight, Check, Maximize2 } from 'lucide-react'
+import { Loader2, RefreshCw, ArrowRight, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import type { DadosCriacao, DadosFotos } from '@/types'
+import type { DadosCriacao, DadosFotos, Momento } from '@/types'
+import ContadorRelacionamento from '@/components/pagina-casal/ContadorRelacionamento'
+import NarrativaIA from '@/components/pagina-casal/NarrativaIA'
+import GaleriaFotos from '@/components/pagina-casal/GaleriaFotos'
+import TimeLine from '@/components/pagina-casal/TimeLine'
+
+const SEC: Record<string, { base: string; dark: string; darkAlt: string; light: string; acento: string }> = {
+  classico: { base: '#0d0612', dark: '#100814', darkAlt: '#18081c', light: '#F5EDE3', acento: '#C9768F' },
+  escuro:   { base: '#0D0D0D', dark: '#0D0D0D', darkAlt: '#111',    light: '#181818', acento: '#C9A96E' },
+  pastel:   { base: '#0a0614', dark: '#0e0818', darkAlt: '#12082a', light: '#E8E0F0', acento: '#9b6fbd' },
+  floral:   { base: '#060c06', dark: '#080e08', darkAlt: '#0c1408', light: '#F0F7EF', acento: '#7a9e78' },
+}
 
 export default function PreviewPage() {
   const router = useRouter()
@@ -15,10 +26,23 @@ export default function PreviewPage() {
   const [erroGerado, setErroGerado] = useState(false)
   const [dadosStep2, setDadosStep2] = useState<DadosCriacao | null>(null)
   const [dadosStep3, setDadosStep3] = useState<DadosFotos | null>(null)
-  const [slugPreview, setSlugPreview] = useState<string | null>(null)
-  const [previewToken, setPreviewToken] = useState<string | null>(null)
-  const [iframeKey, setIframeKey] = useState(0)
   const geracoesSessao = useRef(0)
+
+  const momentosFake = useMemo<Momento[]>(() => {
+    if (!dadosStep3) return []
+    return dadosStep3.momentos
+      .filter((m) => m.titulo?.trim())
+      .map((m, i) => ({
+        id: `preview-${i}`,
+        page_id: 'preview',
+        titulo: m.titulo,
+        descricao: m.descricao || null,
+        data: m.data || null,
+        foto_url: m.foto_url || null,
+        ordem: i,
+        created_at: new Date().toISOString(),
+      }))
+  }, [dadosStep3])
 
   useEffect(() => {
     const init = async () => {
@@ -33,19 +57,12 @@ export default function PreviewPage() {
       setDadosStep2(dados2)
       setDadosStep3(dados3)
 
-      const slugSalvo = sessionStorage.getItem('memoriai_slug')
-      if (slugSalvo) setSlugPreview(slugSalvo)
-
-      const tokenSalvo = sessionStorage.getItem('memoriai_preview_token')
-      if (tokenSalvo) setPreviewToken(tokenSalvo)
-
       const narrativaSalva = sessionStorage.getItem('memoriai_narrativa')
       if (narrativaSalva) {
         setNarrativa(narrativaSalva)
         setGerado(true)
         geracoesSessao.current = 1
       } else {
-        // Salva draft antes de gerar
         const pageIdExistente = sessionStorage.getItem('memoriai_page_id')
         if (!pageIdExistente) {
           try {
@@ -59,8 +76,6 @@ export default function PreviewPage() {
               sessionStorage.setItem('memoriai_page_id', data.id)
               sessionStorage.setItem('memoriai_slug', data.slug)
               sessionStorage.setItem('memoriai_preview_token', data.previewToken)
-              setSlugPreview(data.slug)
-              setPreviewToken(data.previewToken)
             }
           } catch { /* segue */ }
         }
@@ -68,7 +83,7 @@ export default function PreviewPage() {
       }
     }
     init()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const gerarNarrativa = async (dados: DadosCriacao) => {
@@ -113,13 +128,6 @@ export default function PreviewPage() {
       geracoesSessao.current += 1
       setGerado(true)
       sessionStorage.setItem('memoriai_narrativa', texto)
-
-      // Narrativa já foi salva no banco pela rota — força reload do iframe
-      const slug = sessionStorage.getItem('memoriai_slug')
-      if (slug) {
-        setSlugPreview(slug)
-        setIframeKey(k => k + 1)
-      }
     } catch {
       setErroGerado(true)
     } finally {
@@ -133,6 +141,7 @@ export default function PreviewPage() {
       alert('Limite de regenerações atingido. Complete o pagamento para regenerar sem limites.')
       return
     }
+    sessionStorage.removeItem('memoriai_narrativa')
     await gerarNarrativa({ ...dadosStep2, tom: novoTom as DadosCriacao['tom'] })
   }
 
@@ -143,18 +152,19 @@ export default function PreviewPage() {
 
   if (!dadosStep2) return null
 
-  const iframeUrl = slugPreview && previewToken
-    ? `/p/${slugPreview}?preview=1&pt=${previewToken}`
-    : null
+  const tema = dadosStep2.tema || 'classico'
+  const sec = SEC[tema] ?? SEC.classico
+  const fotos = momentosFake.filter((m) => m.foto_url).map((m) => m.foto_url!)
+  const temConteudo = narrativa.length > 0 || gerado
 
   return (
     <div className="space-y-6">
 
-      {/* Estado: gerando narrativa */}
-      <AnimatePresence mode="wait">
-        {gerando && !gerado && (
+      {/* Loading inicial — antes de qualquer texto aparecer */}
+      <AnimatePresence>
+        {gerando && !narrativa && (
           <motion.div
-            key="gerando"
+            key="loading"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
@@ -169,98 +179,106 @@ export default function PreviewPage() {
             <p className="text-sm text-gray-400">
               A IA está criando uma narrativa única para {dadosStep2.nome1} e {dadosStep2.nome2}.
             </p>
-            {narrativa && (
-              <p className="mt-4 text-sm text-gray-500 italic line-clamp-3">
-                {narrativa}
-              </p>
-            )}
-          </motion.div>
-        )}
-
-        {/* Estado: narrativa pronta — iframe da página real */}
-        {(gerado || (gerando && gerado)) && iframeUrl && (
-          <motion.div
-            key="preview"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="space-y-3"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-[#C9768F]">
-                  Preview — página real
-                </p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  Exatamente como {dadosStep2.nome2} vai ver
-                </p>
-              </div>
-              <a
-                href={iframeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-xs font-medium text-[#C9768F] hover:underline"
-              >
-                <Maximize2 className="w-3.5 h-3.5" />
-                Tela cheia
-              </a>
-            </div>
-
-            {/* Frame de celular com iframe real */}
-            <div className="relative mx-auto" style={{ maxWidth: 360 }}>
-              {/* Borda do celular */}
-              <div style={{
-                position: 'absolute',
-                inset: -10,
-                borderRadius: 44,
-                background: '#111',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.45), inset 0 0 0 1.5px rgba(255,255,255,0.07)',
-                zIndex: 0,
-              }} />
-              {/* Câmera */}
-              <div style={{ position: 'absolute', top: -5, left: '50%', transform: 'translateX(-50%)', width: 80, height: 6, background: '#000', borderRadius: 3, zIndex: 2 }} />
-
-              {/* Tela com iframe */}
-              <div style={{ position: 'relative', zIndex: 1, borderRadius: 34, overflow: 'hidden', background: '#0d0612' }}>
-                {gerando && (
-                  <div style={{
-                    position: 'absolute', inset: 0, zIndex: 10,
-                    background: 'rgba(13,6,18,0.7)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexDirection: 'column', gap: 8,
-                  }}>
-                    <Loader2 className="w-6 h-6 text-[#C9768F] animate-spin" />
-                    <p style={{ color: 'rgba(240,228,212,0.6)', fontSize: 12, fontFamily: 'Arial' }}>
-                      Atualizando...
-                    </p>
-                  </div>
-                )}
-                <iframe
-                  key={iframeKey}
-                  src={iframeUrl}
-                  style={{
-                    width: '100%',
-                    height: 620,
-                    border: 'none',
-                    display: 'block',
-                  }}
-                  title="Preview da página"
-                />
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Estado: erro */}
-        {erroGerado && (
-          <motion.div key="erro" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-8">
-            <p className="text-red-500 mb-3 text-sm">Erro ao gerar narrativa. Tente novamente.</p>
-            <Button variant="outline" onClick={() => dadosStep2 && gerarNarrativa(dadosStep2)}>
-              Tentar novamente
-            </Button>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Preview completo — aparece assim que o texto começa a chegar */}
+      {temConteudo && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          {/* Cabeçalho do preview */}
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#C9768F]">
+                Preview — página real
+              </p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Exatamente como {dadosStep2.nome2} vai ver
+              </p>
+            </div>
+            {gerando && (
+              <div className="flex items-center gap-1.5 text-xs text-[#C9768F]">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Escrevendo...
+              </div>
+            )}
+          </div>
+
+          {/* Corpo da página — mesmos componentes e estilos do /p/[slug] */}
+          <div style={{ background: sec.base, borderRadius: 16, overflow: 'hidden' }}>
+
+            {/* Hero: contador + fotos */}
+            <ContadorRelacionamento
+              dataInicio={dadosStep2.dataInicio}
+              nome1={dadosStep2.nome1}
+              nome2={dadosStep2.nome2}
+              tema={tema}
+              fotos={fotos}
+            />
+
+            {/* Narrativa IA — aparece em tempo real durante o streaming */}
+            {narrativa && (
+              <>
+                <div style={{ height: 32, background: `linear-gradient(to bottom, ${sec.dark}, ${sec.darkAlt})` }} />
+                <div style={{ background: sec.darkAlt }}>
+                  <NarrativaIA narrativa={narrativa} tema={tema} />
+                </div>
+              </>
+            )}
+
+            {/* Galeria de fotos */}
+            {momentosFake.length > 0 && (
+              <>
+                <div style={{ height: 44, background: `linear-gradient(to bottom, ${narrativa ? sec.darkAlt : sec.dark}, ${sec.light})` }} />
+                <div style={{ background: sec.light }}>
+                  <GaleriaFotos momentos={momentosFake} tema={tema} />
+                </div>
+              </>
+            )}
+
+            {/* Jornada em polaroids */}
+            {momentosFake.length > 0 && (
+              <>
+                <div style={{ height: 44, background: `linear-gradient(to bottom, ${momentosFake.some(m => m.foto_url) ? sec.light : sec.dark}, ${sec.dark})` }} />
+                <div style={{ background: sec.dark }}>
+                  <TimeLine momentos={momentosFake} tema={tema} />
+                </div>
+              </>
+            )}
+
+            {/* Assinatura final */}
+            <div style={{ height: 40, background: `linear-gradient(to bottom, ${sec.dark}, ${sec.base})` }} />
+            <div className="py-12 px-4 text-center" style={{ background: sec.base }}>
+              <p
+                style={{
+                  fontFamily: 'var(--font-cormorant), Georgia, serif',
+                  fontSize: 'clamp(1.4rem, 4vw, 2rem)',
+                  color: sec.acento,
+                  fontStyle: 'italic',
+                  opacity: 0.85,
+                }}
+              >
+                Com todo meu amor, {dadosStep2.nome1} ♥
+              </p>
+            </div>
+
+          </div>
+        </motion.div>
+      )}
+
+      {/* Erro */}
+      {erroGerado && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-8">
+          <p className="text-red-500 mb-3 text-sm">Erro ao gerar narrativa. Tente novamente.</p>
+          <Button variant="outline" onClick={() => dadosStep2 && gerarNarrativa(dadosStep2)}>
+            Tentar novamente
+          </Button>
+        </motion.div>
+      )}
 
       {/* Regenerar com outro tom */}
       {gerado && !gerando && (
@@ -305,9 +323,11 @@ export default function PreviewPage() {
           disabled={!gerado || gerando}
           className="flex-1 group"
         >
-          <Check className="w-4 h-4" /> Ficou ótimo! Pagar R$ 19,90 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          <Check className="w-4 h-4" /> Ficou ótimo! Pagar R$ 19,90{' '}
+          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </Button>
       </div>
+
     </div>
   )
 }
