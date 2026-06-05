@@ -285,7 +285,7 @@ export default function AberturaPagina({ nome1, nome2, tema = 'classico', childr
                   }}>
                     <h1 style={{
                       fontFamily: "'Playfair Display', Georgia, serif",
-                      fontSize: `${(nome1.length > 12 ? 1.55 : 1.9) * ratio}rem`,
+                      fontSize: `${(nome2.length > 12 ? 1.55 : 1.9) * ratio}rem`,
                       fontWeight: 700,
                       color: corTitulo,
                       lineHeight: 1.1,
@@ -293,10 +293,10 @@ export default function AberturaPagina({ nome1, nome2, tema = 'classico', childr
                       margin: 0,
                       padding: '0 8px',
                     }}>
-                      {nome1}
+                      {nome2}
                     </h1>
                     <p style={{ fontSize: Math.max(10, Math.round(12 * ratio)), color: corSub, margin: 0 }}>
-                      de <span style={{ color: corSelo, fontWeight: 600 }}>{nome2}</span>
+                      de <span style={{ color: corSelo, fontWeight: 600 }}>{nome1}</span>
                     </p>
                   </div>
                 </div>

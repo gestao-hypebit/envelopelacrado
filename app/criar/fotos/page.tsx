@@ -25,7 +25,7 @@ export default function FotosPage() {
             Fotos e momentos
           </h1>
           <p className="text-gray-500">
-            Adicione fotos para cada momento. São opcionais, mas deixam a página muito mais especial.
+            Adicione fotos para cada momento — elas deixam a página muito mais especial e emocionante.
             Até 8 fotos.
           </p>
         </div>

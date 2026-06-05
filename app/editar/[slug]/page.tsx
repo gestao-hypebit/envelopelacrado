@@ -103,6 +103,19 @@ function EditarContent() {
 
   const handleSalvar = async () => {
     if (!dados) return
+
+    // Se tem momento pendente, valida e adiciona junto
+    if (novoTitulo.trim()) {
+      if (!novaFoto) {
+        setErro('Adicione uma foto ao novo momento antes de salvar.')
+        document.getElementById('upload-foto')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        return
+      }
+      // Adiciona o momento antes de salvar os dados da página
+      const adicionouOk = await adicionarMomentoInterno()
+      if (!adicionouOk) return
+    }
+
     setSalvando(true)
     setErro('')
     try {
@@ -184,10 +197,8 @@ function EditarContent() {
     }
   }
 
-  const handleAdicionarMomento = async () => {
-    if (!novoTitulo.trim()) return
-    setAdicionando(true)
-    setErro('')
+  // Lógica compartilhada — usada pelo botão "Adicionar" e pelo "Salvar todas as alterações"
+  const adicionarMomentoInterno = async (): Promise<boolean> => {
     try {
       const form = new FormData()
       form.append('slug', slug)
@@ -206,11 +217,23 @@ function EditarContent() {
       setNovaFoto(null)
       setPreviewFoto(null)
       if (inputFotoRef.current) inputFotoRef.current.value = ''
+      return true
     } catch (e: any) {
       setErro(e.message ?? 'Erro ao adicionar momento.')
-    } finally {
-      setAdicionando(false)
+      return false
     }
+  }
+
+  const handleAdicionarMomento = async () => {
+    if (!novoTitulo.trim()) return
+    if (!novaFoto) {
+      setErro('Adicione uma foto ao momento.')
+      return
+    }
+    setAdicionando(true)
+    setErro('')
+    await adicionarMomentoInterno()
+    setAdicionando(false)
   }
 
   const handleDeletarMomento = async (id: string) => {
@@ -286,14 +309,14 @@ function EditarContent() {
           <h2 className="font-semibold" style={{ color: '#1a0e14' }}>Dados do casal</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium mb-1" style={{ color: '#7a6070' }}>Nome 1</label>
+              <label className="block text-xs font-medium mb-1" style={{ color: '#7a6070' }}>Seu nome <span style={{ fontWeight: 400, color: '#B0909A' }}>(quem criou)</span></label>
               <input value={dados.nome_pessoa1}
                 onChange={e => setDados(d => d ? { ...d, nome_pessoa1: e.target.value } : d)}
                 className="w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#C9768F]"
                 style={{ borderColor: '#F5EDE3' }} />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1" style={{ color: '#7a6070' }}>Nome 2</label>
+              <label className="block text-xs font-medium mb-1" style={{ color: '#7a6070' }}>Nome do seu amor <span style={{ fontWeight: 400, color: '#B0909A' }}>(quem recebe)</span></label>
               <input value={dados.nome_pessoa2}
                 onChange={e => setDados(d => d ? { ...d, nome_pessoa2: e.target.value } : d)}
                 className="w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#C9768F]"
@@ -397,11 +420,26 @@ function EditarContent() {
           )}
 
           {/* Formulário de novo momento */}
-          <div className="border rounded-xl p-4 space-y-3" style={{ borderColor: '#F5EDE3', borderStyle: 'dashed' }}>
-            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#C9768F' }}>
-              <Plus className="w-3 h-3 inline mr-1" />
-              Adicionar foto / momento
-            </p>
+          <div
+            className="border rounded-xl p-4 space-y-3 transition-colors"
+            style={{
+              borderColor: novoTitulo.trim() ? '#C9768F' : '#F5EDE3',
+              borderStyle: novoTitulo.trim() ? 'solid' : 'dashed',
+              background: novoTitulo.trim() ? '#FDF7F9' : 'transparent',
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#C9768F' }}>
+                <Plus className="w-3 h-3 inline mr-1" />
+                Adicionar foto / momento
+              </p>
+              {novoTitulo.trim() && (
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                  style={{ background: '#FDE8EF', color: '#C9768F' }}>
+                  Pendente — será incluído ao salvar
+                </span>
+              )}
+            </div>
 
             {/* Upload de foto */}
             <div>
@@ -432,8 +470,8 @@ function EditarContent() {
                   <p className="text-sm font-medium" style={{ color: '#1a0e14' }}>
                     {previewFoto ? 'Trocar foto' : 'Selecionar foto'}
                   </p>
-                  <p className="text-xs mt-0.5" style={{ color: '#A0785A' }}>
-                    JPG, PNG, WEBP — opcional
+                  <p className="text-xs mt-0.5" style={{ color: novoTitulo.trim() && !previewFoto ? '#e05c7a' : '#A0785A' }}>
+                    {novoTitulo.trim() && !previewFoto ? 'Foto obrigatória' : 'JPG, PNG, WEBP'}
                   </p>
                 </div>
               </label>
@@ -473,7 +511,7 @@ function EditarContent() {
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
               style={{ background: 'linear-gradient(135deg, #C9768F, #b5607a)' }}
             >
-              {adicionando ? <><Loader2 className="w-4 h-4 animate-spin" /> Adicionando...</> : <><Plus className="w-4 h-4" /> Adicionar</>}
+              {adicionando ? <><Loader2 className="w-4 h-4 animate-spin" /> Adicionando...</> : <><Plus className="w-4 h-4" /> Adicionar só este momento</>}
             </button>
           </div>
         </section>
@@ -517,6 +555,7 @@ function EditarContent() {
             style={{ background: 'linear-gradient(135deg, #C9768F, #b5607a)', boxShadow: '0 8px 30px rgba(201,118,143,0.35)' }}>
             {salvando ? <><Loader2 className="w-5 h-5 animate-spin" /> Salvando...</> :
              salvo ? <><Check className="w-5 h-5" /> Salvo com sucesso!</> :
+             novoTitulo.trim() ? 'Salvar tudo (inclui o novo momento)' :
              'Salvar todas as alterações'}
           </motion.button>
         </div>
