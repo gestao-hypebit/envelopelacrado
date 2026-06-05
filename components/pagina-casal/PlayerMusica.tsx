@@ -95,12 +95,12 @@ export default function PlayerMusica({ musicaUrl, tema = 'classico' }: PlayerMus
                 </div>
                 <div className="flex-1">
                   <p
-                    className="font-display font-semibold text-base"
+                    className="font-display font-semibold text-lg"
                     style={{ color: escuro ? '#E8D5B7' : '#1a1a1a' }}
                   >
                     Nossa música especial
                   </p>
-                  <p className="text-xs mt-0.5" style={{ color: escuro ? '#666' : '#aaa' }}>
+                  <p className="text-sm mt-0.5" style={{ color: escuro ? '#666' : '#aaa' }}>
                     Toque para ouvir ♪
                   </p>
                 </div>

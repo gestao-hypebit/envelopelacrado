@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -17,6 +17,16 @@ export default function GaleriaFotos({ momentos, tema = 'classico' }: GaleriaFot
   const fotos = momentos.filter((m) => m.foto_url)
   const touchStartX = useRef(0)
   const wasSwipe = useRef(false)
+
+  // Trava scroll da página enquanto lightbox está aberto
+  useEffect(() => {
+    if (lightbox !== null) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [lightbox])
 
   if (fotos.length === 0) return null
 

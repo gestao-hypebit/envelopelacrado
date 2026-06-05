@@ -64,7 +64,7 @@ export default function MessageBoard({ pageId, respostas: respostasIniciais, tem
         {respostas.length > 0 && (
           <div className="mb-10 space-y-4">
             <h3
-              className="font-display text-2xl font-bold text-center mb-6"
+              className="font-display text-3xl font-bold text-center mb-6"
               style={{ color: escuro ? '#C9A96E' : '#1a1a1a' }}
             >
               Respostas
@@ -82,7 +82,7 @@ export default function MessageBoard({ pageId, respostas: respostasIniciais, tem
                   style={{
                     fontFamily: "'Cormorant Garamond', Georgia, serif",
                     color: escuro ? '#E8D5B7' : '#444',
-                    fontSize: '1.05rem',
+                    fontSize: '1.2rem',
                   }}
                 >
                   &ldquo;{resposta.mensagem}&rdquo;
@@ -114,7 +114,7 @@ export default function MessageBoard({ pageId, respostas: respostasIniciais, tem
                     style={{ color: '#C9768F' }}
                   />
                   <p
-                    className="text-sm mb-4"
+                    className="text-base mb-4"
                     style={{ color: escuro ? '#E8D5B7' : '#666' }}
                   >
                     Esta página foi feita para você. Quer deixar uma mensagem de volta?

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import Script from 'next/script'
-import { Check, Loader2, AlertCircle, Heart, Copy, CheckCheck, CreditCard, QrCode } from 'lucide-react'
+import { Check, Loader2, AlertCircle, Heart, Copy, CheckCheck, CreditCard, QrCode, Gift } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import StepIndicator from '@/components/criar/StepIndicator'
 
@@ -30,6 +30,7 @@ function PagamentoContent() {
   const [email, setEmail] = useState('')
   const [gerando, setGerando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
+  const [referralToken, setReferralToken] = useState<string | null>(null)
   const [pix, setPix] = useState<{ paymentId: string; qrCode: string; qrCodeBase64: string } | null>(null)
   const [copiado, setCopiado] = useState(false)
   const [pago, setPago] = useState(false)
@@ -50,6 +51,8 @@ function PagamentoContent() {
       setNome2(parsed.nome2 || '')
       setEmail(parsed.email || '')
     }
+    const ref = sessionStorage.getItem('memoriai_referral')
+    if (ref) setReferralToken(ref)
   }, [])
 
   // Polling para Pix
@@ -203,6 +206,29 @@ function PagamentoContent() {
     }
   }, [aba, sdkPronto, inicializarBrick])
 
+  const ativarViaReferral = async () => {
+    const pageId = sessionStorage.getItem('memoriai_page_id')
+    if (!pageId || !referralToken) return
+    setGerando(true)
+    setErro(null)
+    try {
+      const res = await fetch('/api/referral/usar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: referralToken, pageId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      sessionStorage.removeItem('memoriai_referral')
+      setPago(true)
+    } catch (err: any) {
+      setErro(err.message || 'Link de convite inválido. Tente o pagamento normal.')
+      setReferralToken(null)
+    } finally {
+      setGerando(false)
+    }
+  }
+
   const ativarPagina = async () => {
     const slug = sessionStorage.getItem('memoriai_slug')
     if (!slug) return
@@ -314,6 +340,45 @@ function PagamentoContent() {
               <span className="font-display text-2xl font-bold text-[#C9768F]">R$ 19,90</span>
             </div>
           </div>
+
+          {/* Referral — página gratuita */}
+          {referralToken && !pix && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-green-50 border border-green-200 rounded-3xl p-6 shadow-lg mb-4"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <Gift className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="font-bold text-green-800 text-sm">Você ganhou uma página gratuita! 🎉</p>
+                  <p className="text-green-700 text-xs">Nenhum pagamento necessário.</p>
+                </div>
+              </div>
+              {erro && (
+                <div className="flex items-center gap-2 text-red-600 bg-red-50 rounded-xl p-3 mb-3">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <p className="text-sm">{erro}</p>
+                </div>
+              )}
+              <button
+                onClick={ativarViaReferral}
+                disabled={gerando}
+                className="w-full py-4 rounded-2xl font-bold text-white text-base flex items-center justify-center gap-2 disabled:opacity-60"
+                style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}
+              >
+                {gerando
+                  ? <><Loader2 className="w-5 h-5 animate-spin" /> Ativando...</>
+                  : <><Heart className="w-5 h-5 fill-white" /> Ativar minha página gratuitamente</>
+                }
+              </button>
+              <p className="text-xs text-green-600 text-center mt-3 opacity-70">
+                ou pague normalmente abaixo se preferir apoiar o projeto ♥
+              </p>
+            </motion.div>
+          )}
 
           {/* Abas */}
           {!pix && (

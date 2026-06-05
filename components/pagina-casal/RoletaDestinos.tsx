@@ -257,7 +257,7 @@ export default function RoletaDestinos({ tema }: Props) {
     <section className="py-10 sm:py-14 px-4" style={{ background: c.section }}>
       <div className="max-w-sm mx-auto text-center space-y-5">
         <div>
-          <h2 className="font-display text-2xl font-bold mb-1" style={{ color: c.titulo }}>
+          <h2 className="font-display text-3xl font-bold mb-1" style={{ color: c.titulo }}>
             Para onde vamos hoje?
           </h2>
           <p className="text-sm" style={{ color: c.subtitulo }}>
@@ -303,7 +303,7 @@ export default function RoletaDestinos({ tema }: Props) {
               className="rounded-2xl px-6 py-4"
               style={{ background: c.resultBg, border: `1px solid ${c.resultBorder}` }}
             >
-              <p className="font-display text-base sm:text-lg font-bold" style={{ color: c.resultText }}>
+              <p className="font-display text-xl sm:text-2xl font-bold" style={{ color: c.resultText }}>
                 {resultado}
               </p>
             </motion.div>
@@ -315,7 +315,7 @@ export default function RoletaDestinos({ tema }: Props) {
           onClick={girar}
           disabled={girando}
           whileTap={{ scale: girando ? 1 : 0.95 }}
-          className="px-8 py-3 rounded-full font-semibold text-sm tracking-wide transition-opacity disabled:opacity-60"
+          className="px-8 py-3 rounded-full font-semibold text-base tracking-wide transition-opacity disabled:opacity-60"
           style={{ background: c.btn, color: c.btnText }}
         >
           {girando ? 'Girando...' : resultado ? 'Girar novamente' : 'Girar!'}

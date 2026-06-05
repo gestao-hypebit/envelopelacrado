@@ -1,24 +1,30 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Heart, ArrowRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Heart, ArrowRight, Gift } from 'lucide-react'
 import StepIndicator from '@/components/criar/StepIndicator'
 import Link from 'next/link'
 
-export default function CriarPage() {
+function CriarContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const ref = searchParams.get('ref')
+    if (ref) sessionStorage.setItem('memoriai_referral', ref)
+  }, [searchParams])
+
+  const referral = searchParams.get('ref')
 
   const handleSelecionar = () => {
-    // Inicializa a sessão de criação
     sessionStorage.setItem('memoriai_step1', JSON.stringify({ tipo: 'surpresa' }))
     router.push('/criar/historia')
   }
 
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
-      {/* Header */}
       <header className="border-b border-[#F5EDE3] bg-white">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="font-display text-xl font-bold text-[#C9768F]">
@@ -29,7 +35,6 @@ export default function CriarPage() {
       </header>
 
       <div className="max-w-2xl mx-auto px-4 py-10">
-        {/* Step indicator */}
         <div className="mb-12">
           <StepIndicator stepAtual={1} />
         </div>
@@ -44,9 +49,24 @@ export default function CriarPage() {
           <h1 className="font-display text-4xl font-bold text-gray-900 mt-3 mb-4">
             O que você quer criar?
           </h1>
-          <p className="text-gray-500 text-lg mb-12">
+          <p className="text-gray-500 text-lg mb-8">
             Escolha o tipo de página que você quer criar para o casal.
           </p>
+
+          {/* Banner de convite gratuito */}
+          {referral && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-2xl px-5 py-4 mb-6 text-left"
+            >
+              <Gift className="w-6 h-6 text-green-600 flex-shrink-0" />
+              <div>
+                <p className="font-semibold text-green-800 text-sm">Você ganhou uma página gratuita! 🎉</p>
+                <p className="text-green-700 text-xs mt-0.5">Um amigo criou uma surpresa e quis te presentear também.</p>
+              </div>
+            </motion.div>
+          )}
 
           {/* Card de opção */}
           <motion.button
@@ -71,10 +91,17 @@ export default function CriarPage() {
                   A IA narra a história de vocês de forma poética e única.
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {['Narrativa por IA', 'Linha do tempo', 'QR Code', 'Vitalício'].map((tag) => (
+                  {(referral
+                    ? ['Narrativa por IA', 'Linha do tempo', 'QR Code', 'Vitalício', '🎁 Gratuito']
+                    : ['Narrativa por IA', 'Linha do tempo', 'QR Code', 'Vitalício']
+                  ).map((tag) => (
                     <span
                       key={tag}
-                      className="text-xs font-medium bg-[#F5EDE3] text-[#C9768F] px-3 py-1 rounded-full"
+                      className={`text-xs font-medium px-3 py-1 rounded-full ${
+                        tag.includes('Gratuito')
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-[#F5EDE3] text-[#C9768F]'
+                      }`}
                     >
                       {tag}
                     </span>
@@ -84,12 +111,19 @@ export default function CriarPage() {
             </div>
           </motion.button>
 
-          {/* Futuramente mais opções */}
           <p className="text-gray-400 text-sm mt-6">
             Mais tipos em breve: pedido de namoro, noivado, aniversário especial...
           </p>
         </motion.div>
       </div>
     </div>
+  )
+}
+
+export default function CriarPage() {
+  return (
+    <Suspense>
+      <CriarContent />
+    </Suspense>
   )
 }

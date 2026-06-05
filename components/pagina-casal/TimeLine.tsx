@@ -77,14 +77,14 @@ function PolaroidCard({ momento, index, tema }: { momento: Momento; index: numbe
             style={{
               fontFamily: "'Dancing Script', 'Pacifico', cursive",
               color: '#333',
-              fontSize: '0.9rem',
+              fontSize: '1.05rem',
             }}
           >
             {momento.titulo}
           </p>
           {momento.data && (
             <p
-              className="text-xs mt-1 opacity-60"
+              className="text-sm mt-1 opacity-60"
               style={{ fontFamily: 'Georgia, serif', color: '#C9768F' }}
             >
               {new Date(momento.data + 'T00:00:00').toLocaleDateString('pt-BR', {
@@ -136,23 +136,17 @@ export default function TimeLine({ momentos, tema = 'classico' }: TimeLineProps)
           className="text-center mb-10 sm:mb-16"
         >
           <span
-            className="text-xs sm:text-sm font-medium tracking-widest uppercase"
+            className="text-sm sm:text-base font-medium tracking-widest uppercase"
             style={{ color: cores.acento }}
           >
             A nossa jornada
           </span>
           <h2
-            className="font-display text-2xl sm:text-3xl font-bold mt-2"
+            className="font-display text-3xl sm:text-4xl font-bold mt-2"
             style={{ color: cores.titulo }}
           >
             Momentos que ficaram
           </h2>
-          <p
-            className="text-xs sm:text-sm mt-2"
-            style={{ color: cores.sub }}
-          >
-            Toque para ver melhor
-          </p>
         </motion.div>
 
         {/* Grid de polaroids */}

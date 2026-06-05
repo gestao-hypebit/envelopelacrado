@@ -77,7 +77,7 @@ export default function NarrativaIA({ narrativa, tema = 'classico' }: NarrativaI
 
                   {/* Texto */}
                   <p
-                    className="leading-loose text-base sm:text-lg"
+                    className="leading-loose text-lg sm:text-xl"
                     style={{
                       fontFamily: "'Cormorant Garamond', Georgia, serif",
                       color: corTexto,
@@ -90,7 +90,7 @@ export default function NarrativaIA({ narrativa, tema = 'classico' }: NarrativaI
                         style={{
                           color: corAcento,
                           fontFamily: "'Playfair Display', Georgia, serif",
-                          fontSize: 'clamp(2.6rem, 9vw, 4rem)',
+                          fontSize: 'clamp(3rem, 10vw, 4.5rem)',
                           lineHeight: '0.8',
                           marginTop: '0.1em',
                         }}

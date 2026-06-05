@@ -1,0 +1,2 @@
+-- Nenhuma alteração de banco necessária para o sistema de cupom admin.
+-- O código de cupom é validado via variável de ambiente ADMIN_COUPON_CODE.
