@@ -53,13 +53,32 @@ export async function POST(req: NextRequest) {
       } as any,
     })
 
-    // Se o emissor exigiu 3DS, retorna os dados para o front completar o desafio
-    const res3ds = (response as any).three_ds_info
+    const paymentId = response.id
+    const status = response.status
+    const statusDetail = response.status_detail
+
+    console.log('[pagamento/cartao] status:', status, '| detail:', statusDetail, '| id:', paymentId)
+
+    // O SDK do MP pode não incluir three_ds_info — busca da API bruta como fallback
+    let threeDsInfo = (response as any).three_ds_info ?? null
+    if (!threeDsInfo && statusDetail === 'pending_challenge' && paymentId) {
+      try {
+        const raw = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+          headers: { Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}` },
+        })
+        const full = await raw.json()
+        threeDsInfo = full.three_ds_info ?? null
+        console.log('[pagamento/cartao] three_ds_info via raw API:', JSON.stringify(threeDsInfo))
+      } catch (e) {
+        console.error('[pagamento/cartao] falha ao buscar three_ds_info:', e)
+      }
+    }
+
     return NextResponse.json({
-      status: response.status,
-      statusDetail: response.status_detail,
-      paymentId: response.id,
-      threeDsInfo: res3ds ?? null,
+      status,
+      statusDetail,
+      paymentId,
+      threeDsInfo,
     })
   } catch (error: any) {
     console.error('[pagamento/cartao]', JSON.stringify(error?.cause ?? error, null, 2))

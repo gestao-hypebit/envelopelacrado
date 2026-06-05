@@ -36,9 +36,11 @@ function PagamentoContent() {
   const [ativando, setAtivando] = useState(false)
   const [sdkPronto, setSdkPronto] = useState(false)
   const [desafio3ds, setDesafio3ds] = useState<{ url: string; paymentId: string } | null>(null)
+  const [cartaoPendente, setCartaoPendente] = useState<{ paymentId: string } | null>(null)
   const brickRef = useRef<any>(null)
   const pollingRef = useRef<NodeJS.Timeout | null>(null)
   const polling3dsRef = useRef<NodeJS.Timeout | null>(null)
+  const pollingCartaoRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     const dados = sessionStorage.getItem('memoriai_step2')
@@ -88,6 +90,28 @@ function PagamentoContent() {
     return () => { if (polling3dsRef.current) clearInterval(polling3dsRef.current) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [desafio3ds, pago])
+
+  // Polling para cartão em análise (in_process / pending sem 3DS)
+  useEffect(() => {
+    if (!cartaoPendente || pago) return
+    pollingCartaoRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/pagamento/status?paymentId=${cartaoPendente.paymentId}`)
+        const data = await res.json()
+        if (data.status === 'approved') {
+          clearInterval(pollingCartaoRef.current!)
+          setCartaoPendente(null)
+          await ativarPagina()
+        } else if (data.status === 'rejected' || data.status === 'cancelled') {
+          clearInterval(pollingCartaoRef.current!)
+          setCartaoPendente(null)
+          setErro('Pagamento recusado pelo banco. Tente outro cartão ou use Pix.')
+        }
+      } catch { /* silencioso */ }
+    }, 5000)
+    return () => { if (pollingCartaoRef.current) clearInterval(pollingCartaoRef.current) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cartaoPendente, pago])
 
   // Inicializar Brick de cartão
   const inicializarBrick = useCallback(async () => {
@@ -141,7 +165,8 @@ function PagamentoContent() {
               // Banco exige verificação 3DS — exibe iframe inline
               setDesafio3ds({ url: data.threeDsInfo.external_resource_url, paymentId: String(data.paymentId) })
             } else if (data.status === 'in_process' || data.status === 'pending') {
-              setErro('Pagamento em análise. Você receberá a confirmação em breve.')
+              // Pagamento em análise (antifraude / revisão manual) — faz polling até resolver
+              setCartaoPendente({ paymentId: String(data.paymentId) })
             } else {
               const MSGS: Record<string, string> = {
                 cc_rejected_insufficient_amount: 'Saldo insuficiente no cartão.',
@@ -390,6 +415,24 @@ function PagamentoContent() {
                       <Loader2 className="w-4 h-4 animate-spin text-[#C9768F] flex-shrink-0" />
                       <p className="text-sm text-[#C9768F]">Aguardando confirmação do banco...</p>
                     </div>
+                  </div>
+                ) : cartaoPendente ? (
+                  <div className="bg-white rounded-3xl border border-[#F5EDE3] p-6 shadow-lg text-center space-y-5">
+                    <div className="w-16 h-16 rounded-full bg-[#FEF2F5] flex items-center justify-center mx-auto">
+                      <Loader2 className="w-7 h-7 animate-spin text-[#C9768F]" />
+                    </div>
+                    <div>
+                      <p className="font-display text-xl font-bold text-gray-900 mb-1">Pagamento em análise</p>
+                      <p className="text-sm text-gray-500 leading-relaxed">
+                        Seu banco está analisando o pagamento. Isso pode levar alguns instantes.<br />
+                        Você será redirecionado automaticamente quando aprovado.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 bg-[#FEF2F5] rounded-xl p-3 justify-center">
+                      <Loader2 className="w-4 h-4 animate-spin text-[#C9768F] flex-shrink-0" />
+                      <p className="text-sm text-[#C9768F]">Aguardando aprovação do banco...</p>
+                    </div>
+                    <p className="text-xs text-gray-400">Não feche esta página.</p>
                   </div>
                 ) : (
                   <div className="bg-white rounded-3xl border border-[#F5EDE3] p-6 shadow-lg space-y-4">
