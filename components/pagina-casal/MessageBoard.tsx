@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Heart, Send, Loader2, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -23,6 +23,13 @@ export default function MessageBoard({ pageId, respostas: respostasIniciais, tem
   const [erro, setErro] = useState<string | null>(null)
 
   const escuro = tema === 'escuro'
+
+  useEffect(() => {
+    const handler = () => { if (!enviado) setAberto(true) }
+    document.addEventListener('open-reply', handler)
+    return () => document.removeEventListener('open-reply', handler)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enviado])
 
   const handleEnviar = async () => {
     if (!mensagem.trim()) return
@@ -51,7 +58,7 @@ export default function MessageBoard({ pageId, respostas: respostasIniciais, tem
   }
 
   return (
-    <section className="py-10 sm:py-16 px-4">
+    <section id="messageboard" className="py-10 sm:py-16 px-4">
       <div className="max-w-xl mx-auto">
         {/* Mensagens existentes */}
         {respostas.length > 0 && (

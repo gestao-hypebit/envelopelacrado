@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, useScroll, useTransform, useMotionValue, useSpring, useReducedMotion } from 'framer-motion'
 import Image from 'next/image'
+import { ChevronDown } from 'lucide-react'
 import { useContador } from '@/hooks/useContador'
 import { useIsMobile } from '@/hooks/useIsMobile'
 
@@ -43,11 +44,33 @@ function FotoCarousel({ fotos, acento, skipAnimations }: { fotos: string[]; acen
   const springRX = useSpring(rotX, { stiffness: 320, damping: 28 })
   const springRY = useSpring(rotY, { stiffness: 320, damping: 28 })
 
-  useEffect(() => {
+  // Swipe touch
+  const touchStartX = useRef(0)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+
+  const resetInterval = () => {
+    if (intervalRef.current) clearInterval(intervalRef.current)
     if (total <= 1) return
-    const t = setInterval(() => setAtual(a => (a + 1) % total), 4500)
-    return () => clearInterval(t)
+    intervalRef.current = setInterval(() => setAtual(a => (a + 1) % total), 4500)
+  }
+
+  useEffect(() => {
+    resetInterval()
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [total])
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const delta = e.changedTouches[0].clientX - touchStartX.current
+    if (Math.abs(delta) < 38) return
+    if (delta > 0) setAtual(a => (a - 1 + total) % total)
+    else setAtual(a => (a + 1) % total)
+    resetInterval()
+  }
 
   if (total === 0) return null
 
@@ -75,6 +98,8 @@ function FotoCarousel({ fotos, acento, skipAnimations }: { fotos: string[]; acen
       <div
         className="relative overflow-hidden"
         style={{ width: CARD_W + OFFSET * 2, height: CARD_H }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         {fotos.map((foto, idx) => {
           const d = getDiff(idx)
@@ -161,6 +186,7 @@ export default function ContadorRelacionamento({
   })
   const bokeh1Y = useTransform(scrollYProgress, [0, 1], skipAnimations ? ['0%', '0%'] : ['0%', '-45%'])
   const bokeh2Y = useTransform(scrollYProgress, [0, 1], skipAnimations ? ['0%', '0%'] : ['0%', '-28%'])
+  const scrollHintOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0])
 
   const partesData = [
     anos > 0 ? `${anos} ${anos === 1 ? 'ano' : 'anos'}` : null,
@@ -279,6 +305,22 @@ export default function ContadorRelacionamento({
           e contando, segundo a segundo
         </motion.p>
       </div>
+
+      {/* Scroll hint — some quando começa a rolar */}
+      <motion.div
+        className="absolute bottom-7 left-1/2 -translate-x-1/2 pointer-events-none"
+        style={{ opacity: scrollHintOpacity }}
+      >
+        <motion.div
+          animate={{ y: [0, 7, 0] }}
+          transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <ChevronDown
+            className="w-6 h-6"
+            style={{ color: cores.label }}
+          />
+        </motion.div>
+      </motion.div>
     </div>
   )
 }

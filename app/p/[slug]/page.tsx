@@ -10,6 +10,7 @@ import GaleriaFotos from '@/components/pagina-casal/GaleriaFotos'
 import PlayerMusica from '@/components/pagina-casal/PlayerMusica'
 import MessageBoard from '@/components/pagina-casal/MessageBoard'
 import RoletaDestinos from '@/components/pagina-casal/RoletaDestinos'
+import StickyResposta from '@/components/pagina-casal/StickyResposta'
 import type { Momento, Resposta } from '@/types'
 import Link from 'next/link'
 
@@ -102,6 +103,7 @@ export default async function PaginaCasal({ params, searchParams }: Props) {
 
   return (
     <AberturaPagina nome1={pagina.nome_pessoa1} nome2={pagina.nome_pessoa2} tema={tema} autoAbrir={isPreview}>
+    <StickyResposta acento={sec.acento} />
     <main style={{ background: sec.base, minHeight: '100vh', position: 'relative', contain: 'paint' }}>
 
       {/* Grain texture overlay — fixo, sutil, cobre toda a página */}

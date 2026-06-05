@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
 import Image from 'next/image'
 import type { Momento } from '@/types'
@@ -17,16 +17,31 @@ function PolaroidCard({ momento, index, tema }: { momento: Momento; index: numbe
   const inView = useInView(ref, { once: true, margin: '-60px' })
   const escuro = tema === 'escuro'
   const rotacao = ROTACOES[index % ROTACOES.length]
+  const [destacado, setDestacado] = useState(false)
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
+
+  const handleTap = () => {
+    setDestacado(true)
+    if (timerRef.current) clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(() => setDestacado(false), 2200)
+  }
 
   return (
     <motion.div
       ref={ref}
       initial={{ opacity: 0, y: 50, rotate: rotacao }}
-      animate={inView ? { opacity: 1, y: 0, rotate: rotacao } : {}}
+      animate={inView ? {
+        opacity: 1,
+        y: 0,
+        rotate: destacado ? 0 : rotacao,
+        scale: destacado ? 1.06 : 1,
+        zIndex: destacado ? 10 : 1,
+      } : {}}
       whileHover={{ rotate: 0, scale: 1.04, zIndex: 10 }}
-      transition={{ duration: 0.6, delay: index * 0.08, type: 'spring', stiffness: 200 }}
+      transition={{ duration: 0.5, delay: index * 0.08, type: 'spring', stiffness: 200 }}
       className="relative cursor-pointer"
       style={{ transformOrigin: 'center bottom' }}
+      onClick={handleTap}
     >
       {/* Polaroid */}
       <div

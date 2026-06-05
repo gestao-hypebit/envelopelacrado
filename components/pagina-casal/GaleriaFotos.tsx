@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -15,11 +15,27 @@ export default function GaleriaFotos({ momentos, tema = 'classico' }: GaleriaFot
   const [lightbox, setLightbox] = useState<number | null>(null)
   const escuro = tema === 'escuro'
   const fotos = momentos.filter((m) => m.foto_url)
+  const touchStartX = useRef(0)
+  const wasSwipe = useRef(false)
 
   if (fotos.length === 0) return null
 
   const anterior = () => setLightbox((i) => (i === null ? null : (i - 1 + fotos.length) % fotos.length))
   const proximo = () => setLightbox((i) => (i === null ? null : (i + 1) % fotos.length))
+
+  const handleLightboxTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+    wasSwipe.current = false
+  }
+
+  const handleLightboxTouchEnd = (e: React.TouchEvent) => {
+    const delta = e.changedTouches[0].clientX - touchStartX.current
+    if (Math.abs(delta) > 40) {
+      wasSwipe.current = true
+      if (delta > 0) anterior()
+      else proximo()
+    }
+  }
 
   // Alturas variadas para efeito mosaico
   const alturas = ['aspect-square', 'aspect-[3/4]', 'aspect-[4/3]', 'aspect-square', 'aspect-[3/4]', 'aspect-[4/3]']
@@ -81,7 +97,9 @@ export default function GaleriaFotos({ momentos, tema = 'classico' }: GaleriaFot
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center"
             style={{ background: 'rgba(0,0,0,0.95)' }}
-            onClick={() => setLightbox(null)}
+            onClick={() => { if (!wasSwipe.current) setLightbox(null) }}
+            onTouchStart={handleLightboxTouchStart}
+            onTouchEnd={handleLightboxTouchEnd}
           >
             {/* Fechar */}
             <button
