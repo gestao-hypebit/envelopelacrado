@@ -17,7 +17,7 @@ const schema = z.object({
   nome2: z.string().min(2, 'Nome muito curto').max(50),
   email: z.string().email('Email inválido'),
   dataInicio: z.string().min(1, 'Informe a data'),
-  comoSeConheceram: z.string().min(20, 'Conta mais detalhes! Quanto mais específico, mais bonito fica.').max(500),
+  comoSeConheceram: z.string().min(20, 'Conta mais detalhes! Quanto mais específico, mais bonito fica.').max(10000),
   momentos: z
     .array(
       z.object({
@@ -148,7 +148,7 @@ export default function FormularioHistoria() {
           <Textarea
             id="comoSeConheceram"
             placeholder="Conta com detalhes... Onde foi? O que aconteceu? Quem falou primeiro? Quanto mais específico, mais emocionante a IA vai escrever!"
-            className="min-h-[120px]"
+            className="min-h-[160px]"
             {...register('comoSeConheceram')}
           />
           {errors.comoSeConheceram && (
