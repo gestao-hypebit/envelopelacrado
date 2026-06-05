@@ -52,16 +52,19 @@ export async function POST(req: NextRequest) {
 
   // Salva momentos
   if (dadosFotos?.momentos?.length > 0) {
-    await supabase.from('momentos').insert(
+    const { error: momentosError } = await supabase.from('momentos').insert(
       dadosFotos.momentos.map((m: any, i: number) => ({
         page_id: pagina.id,
         titulo: m.titulo,
-        descricao: m.descricao ?? null,
-        data: m.data ?? null,
-        foto_url: m.foto_url ?? null,
+        descricao: m.descricao?.trim() || null,
+        data: m.data?.trim() || null,
+        foto_url: m.foto_url || null,
         ordem: i,
       }))
     )
+    if (momentosError) {
+      console.error('[paginas/criar] momentos insert error:', momentosError.message)
+    }
   }
 
   return NextResponse.json({
