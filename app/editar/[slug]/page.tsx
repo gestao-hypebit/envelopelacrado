@@ -187,6 +187,11 @@ function EditarContent() {
 
   const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null
+    if (file && file.size > 4 * 1024 * 1024) {
+      setErro('A foto é muito grande. Use uma imagem menor que 4 MB.')
+      if (inputFotoRef.current) inputFotoRef.current.value = ''
+      return
+    }
     setNovaFoto(file)
     if (file) {
       const reader = new FileReader()
@@ -208,8 +213,15 @@ function EditarContent() {
       if (novaFoto) form.append('foto', novaFoto)
 
       const res = await fetch('/api/momentos', { method: 'POST', body: form })
+
+      if (!res.ok) {
+        if (res.status === 413) throw new Error('A foto é muito grande. Use uma imagem menor que 4 MB.')
+        let errData: any = {}
+        try { errData = await res.json() } catch {}
+        throw new Error(errData.error ?? `Erro ao salvar (${res.status})`)
+      }
+
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
 
       setMomentos(prev => [...prev, data.momento])
       setNovoTitulo('')
