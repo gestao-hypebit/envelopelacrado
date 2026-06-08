@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { buscarPagamento } from '@/lib/mercadopago'
 import { createServiceClient } from '@/lib/supabase/server'
 import { enviarEmailConfirmacao } from '@/lib/resend'
+import { trackPurchase } from '@/lib/meta'
 import type { Pagina } from '@/types'
 
 export async function POST(req: NextRequest) {
@@ -62,7 +63,15 @@ export async function POST(req: NextRequest) {
         .single()
 
       if (pagina) {
-        await enviarEmailConfirmacao(pagina as Pagina)
+        await Promise.all([
+          enviarEmailConfirmacao(pagina as Pagina),
+          trackPurchase({
+            paymentId,
+            pageUrl: `${process.env.NEXT_PUBLIC_URL}p/${pagina.slug}`,
+            ip: req.headers.get('x-forwarded-for') ?? undefined,
+            userAgent: req.headers.get('user-agent') ?? undefined,
+          }),
+        ])
       }
     }
 

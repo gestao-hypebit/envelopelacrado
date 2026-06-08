@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
+import { fbq } from '@/components/MetaPixel'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
@@ -53,6 +54,9 @@ function PagamentoContent() {
     }
     const ref = sessionStorage.getItem('memoriai_referral')
     if (ref) setReferralToken(ref)
+
+    // Usuário chegou na página de pagamento
+    fbq('track', 'InitiateCheckout', { value: 19.90, currency: 'BRL', num_items: 1 })
   }, [])
 
   // Polling para Pix
@@ -386,7 +390,7 @@ function PagamentoContent() {
               {(['pix', 'cartao'] as Aba[]).map((a) => (
                 <button
                   key={a}
-                  onClick={() => { setAba(a); setErro(null) }}
+                  onClick={() => { setAba(a); setErro(null); fbq('track', 'AddPaymentInfo', { payment_method: a }) }}
                   className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl border-2 text-sm font-semibold transition-all ${
                     aba === a
                       ? 'border-[#C9768F] bg-[#FEF2F5] text-[#C9768F]'

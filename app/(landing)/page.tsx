@@ -4,6 +4,7 @@ import PreviewSection from '@/components/landing/PreviewSection'
 import Diferenciais from '@/components/landing/Diferenciais'
 import Depoimentos from '@/components/landing/Depoimentos'
 import Precos from '@/components/landing/Precos'
+import TrackEvent from '@/components/TrackEvent'
 import Link from 'next/link'
 
 const faqItems = [
@@ -57,6 +58,7 @@ export default function LandingPage() {
       </nav>
 
       <div className="pt-16">
+        <TrackEvent name="ViewContent" params={{ content_name: 'Landing Page', content_type: 'product', value: 19.90, currency: 'BRL' }} />
         <Hero />
 
         <div id="demo-preview">
