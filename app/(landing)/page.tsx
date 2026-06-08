@@ -1,5 +1,6 @@
 import Hero from '@/components/landing/Hero'
 import ComoFunciona from '@/components/landing/ComoFunciona'
+import PreviewSection from '@/components/landing/PreviewSection'
 import Diferenciais from '@/components/landing/Diferenciais'
 import Depoimentos from '@/components/landing/Depoimentos'
 import Precos from '@/components/landing/Precos'
@@ -57,6 +58,10 @@ export default function LandingPage() {
 
       <div className="pt-16">
         <Hero />
+
+        <div id="demo-preview">
+          <PreviewSection />
+        </div>
 
         <div id="como-funciona">
           <ComoFunciona />
