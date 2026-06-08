@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Inter, Playfair_Display, Cormorant_Garamond } from 'next/font/google'
+import Script from 'next/script'
 import MetaPixel from '@/components/MetaPixel'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
@@ -61,7 +62,23 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={`${inter.variable} ${playfair.variable} ${cormorant.variable}`}>
       <body>
+        {/* Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-D0KZRP8ZL4"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-D0KZRP8ZL4');
+          `}
+        </Script>
+
+        {/* Meta Pixel */}
         <MetaPixel />
+
         {children}
       </body>
     </html>
