@@ -30,21 +30,46 @@ export default function PreviewPage() {
   const [dadosStep3, setDadosStep3] = useState<DadosFotos | null>(null)
   const geracoesSessao = useRef(0)
 
-  const momentosFake = useMemo<Momento[]>(() => {
-    if (!dadosStep3) return []
-    return dadosStep3.momentos
+  // Momentos da timeline (step 2, com foto opcional)
+  const momentosTimeline = useMemo<Momento[]>(() => {
+    if (!dadosStep2) return []
+    return dadosStep2.momentos
       .filter((m) => m.titulo?.trim())
       .map((m, i) => ({
-        id: `preview-${i}`,
+        id: `preview-t-${i}`,
         page_id: 'preview',
         titulo: m.titulo,
         descricao: m.descricao || null,
         data: m.data || null,
-        foto_url: m.foto_url || null,
+        foto_url: m.fotoUrl || null,
         ordem: i,
+        tipo: 'momento' as const,
+        created_at: new Date().toISOString(),
+      }))
+  }, [dadosStep2])
+
+  // Fotos da galeria (step 3)
+  const fotosGaleria = useMemo<Momento[]>(() => {
+    if (!dadosStep3) return []
+    return dadosStep3.momentos
+      .filter((m) => m.foto_url || m.titulo?.trim())
+      .map((m, i) => ({
+        id: `preview-g-${i}`,
+        page_id: 'preview',
+        titulo: m.titulo?.trim() || 'Foto',
+        descricao: m.descricao || null,
+        data: m.data || null,
+        foto_url: m.foto_url || null,
+        ordem: 100 + i,
+        tipo: 'galeria' as const,
         created_at: new Date().toISOString(),
       }))
   }, [dadosStep3])
+
+  const todasFotos = useMemo(
+    () => [...momentosTimeline, ...fotosGaleria].filter((m) => m.foto_url).map((m) => m.foto_url!),
+    [momentosTimeline, fotosGaleria]
+  )
 
   useEffect(() => {
     const init = async () => {
@@ -156,7 +181,6 @@ export default function PreviewPage() {
 
   const tema = dadosStep2.tema || 'classico'
   const sec = SEC[tema] ?? SEC.classico
-  const fotos = momentosFake.filter((m) => m.foto_url).map((m) => m.foto_url!)
   const temConteudo = narrativa.length > 0 || gerado
 
   return (
@@ -219,7 +243,7 @@ export default function PreviewPage() {
               nome1={dadosStep2.nome1}
               nome2={dadosStep2.nome2}
               tema={tema}
-              fotos={fotos}
+              fotos={todasFotos}
             />
 
             {/* Narrativa IA — aparece em tempo real durante o streaming */}
@@ -232,22 +256,22 @@ export default function PreviewPage() {
               </>
             )}
 
-            {/* Galeria de fotos */}
-            {momentosFake.length > 0 && (
+            {/* Galeria de fotos (tipo='galeria') */}
+            {fotosGaleria.length > 0 && (
               <>
                 <div style={{ height: 44, background: `linear-gradient(to bottom, ${narrativa ? sec.darkAlt : sec.dark}, ${sec.light})` }} />
                 <div style={{ background: sec.light }}>
-                  <GaleriaFotos momentos={momentosFake} tema={tema} />
+                  <GaleriaFotos momentos={fotosGaleria} tema={tema} />
                 </div>
               </>
             )}
 
-            {/* Jornada em polaroids */}
-            {momentosFake.length > 0 && (
+            {/* Timeline polaroids (tipo='momento') */}
+            {momentosTimeline.length > 0 && (
               <>
-                <div style={{ height: 44, background: `linear-gradient(to bottom, ${momentosFake.some(m => m.foto_url) ? sec.light : sec.dark}, ${sec.dark})` }} />
+                <div style={{ height: 44, background: `linear-gradient(to bottom, ${fotosGaleria.length > 0 ? sec.light : sec.darkAlt}, ${sec.dark})` }} />
                 <div style={{ background: sec.dark }}>
-                  <TimeLine momentos={momentosFake} tema={tema} />
+                  <TimeLine momentos={momentosTimeline} tema={tema} />
                 </div>
               </>
             )}

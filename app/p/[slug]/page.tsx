@@ -31,9 +31,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!data) return { title: 'Página não encontrada' }
 
+  const baseUrl = (process.env.NEXT_PUBLIC_URL ?? 'https://envelopelacrado.com.br').replace(/\/$/, '')
+  const nome1 = data.nome_pessoa1
+  const nome2 = data.nome_pessoa2
+  const titulo = `${nome1} & ${nome2} | Envelope Lacrado`
+  const descricao = `A história de amor de ${nome1} e ${nome2}, narrada pela IA. Uma surpresa única e inesquecível. 💕`
+  const ogImage = `${baseUrl}/api/og?nome1=${encodeURIComponent(nome1)}&nome2=${encodeURIComponent(nome2)}`
+
   return {
-    title: `${data.nome_pessoa1} & ${data.nome_pessoa2} | Envelope Lacrado`,
-    description: `A história de amor de ${data.nome_pessoa1} e ${data.nome_pessoa2}, narrada pela IA.`,
+    title: titulo,
+    description: descricao,
+    openGraph: {
+      title: titulo,
+      description: descricao,
+      type: 'website',
+      images: [{ url: ogImage, width: 1200, height: 630, alt: `${nome1} & ${nome2}` }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: titulo,
+      description: descricao,
+      images: [ogImage],
+    },
   }
 }
 
@@ -92,6 +111,12 @@ export default async function PaginaCasal({ params, searchParams }: Props) {
 
   const tema = pagina.tema ?? 'classico'
 
+  // Separa os dois tipos para não interferirem entre si
+  const momentosTimeline = (momentos as Momento[])?.filter((m) => !m.tipo || m.tipo === 'momento') ?? []
+  const fotosGaleria = (momentos as Momento[])?.filter((m) => m.tipo === 'galeria') ?? []
+  // Hero carousel usa todas as fotos disponíveis (ambos os tipos)
+  const todasFotos = (momentos as Momento[])?.filter((m) => m.foto_url).map((m) => m.foto_url!) ?? []
+
   // Seções alternadas: escuro=tudo dark, outros temas=dark+light alternados
   const SEC: Record<string, { base: string; dark: string; darkAlt: string; light: string; footer: string; acento: string }> = {
     classico: { base: '#0d0612', dark: '#100814', darkAlt: '#18081c', light: '#F5EDE3', footer: '#0d0612', acento: '#C9768F' },
@@ -119,13 +144,13 @@ export default async function PaginaCasal({ params, searchParams }: Props) {
         }}
       />
 
-      {/* Contador — hero com carrossel de fotos */}
+      {/* Contador — hero com carrossel de fotos (usa todas) */}
       <ContadorRelacionamento
         dataInicio={pagina.data_inicio}
         nome1={pagina.nome_pessoa1}
         nome2={pagina.nome_pessoa2}
         tema={tema}
-        fotos={momentos?.filter((m) => m.foto_url).map((m) => m.foto_url!) ?? []}
+        fotos={todasFotos}
       />
 
       {/* Narrativa da IA — dark alt */}
@@ -138,22 +163,22 @@ export default async function PaginaCasal({ params, searchParams }: Props) {
         </>
       )}
 
-      {/* Galeria de fotos — light */}
-      {momentos && momentos.length > 0 && (
+      {/* Galeria de fotos — light (somente tipo='galeria') */}
+      {fotosGaleria.length > 0 && (
         <>
           <div style={{ height: 44, background: `linear-gradient(to bottom, ${sec.darkAlt}, ${sec.light})` }} />
           <div style={{ background: sec.light }}>
-            <GaleriaFotos momentos={momentos as Momento[]} tema={tema} />
+            <GaleriaFotos momentos={fotosGaleria} tema={tema} />
           </div>
         </>
       )}
 
-      {/* Linha do tempo — dark */}
-      {momentos && momentos.length > 0 && (
+      {/* Linha do tempo — dark (somente tipo='momento') */}
+      {momentosTimeline.length > 0 && (
         <>
-          <div style={{ height: 44, background: `linear-gradient(to bottom, ${sec.light}, ${sec.dark})` }} />
+          <div style={{ height: 44, background: `linear-gradient(to bottom, ${fotosGaleria.length > 0 ? sec.light : sec.darkAlt}, ${sec.dark})` }} />
           <div style={{ background: sec.dark }}>
-            <TimeLine momentos={momentos as Momento[]} tema={tema} />
+            <TimeLine momentos={momentosTimeline} tema={tema} />
           </div>
         </>
       )}
@@ -205,11 +230,17 @@ export default async function PaginaCasal({ params, searchParams }: Props) {
       </>
 
       {/* Footer */}
-      <footer className="py-10 text-center px-4" style={{ background: sec.footer }}>
+      <footer className="py-10 text-center px-4 space-y-3" style={{ background: sec.footer }}>
         <p className="text-sm" style={{ color: 'rgba(255,255,255,0.25)' }}>
           Crie a sua página em{' '}
           <Link href="/" style={{ color: sec.acento }} className="hover:underline font-medium">
             envelopelacrado.com.br
+          </Link>
+        </p>
+        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.12)' }}>
+          Você criou esta página?{' '}
+          <Link href="/dashboard" style={{ color: 'rgba(255,255,255,0.22)' }} className="hover:underline">
+            Acesse o painel para editar
           </Link>
         </p>
       </footer>

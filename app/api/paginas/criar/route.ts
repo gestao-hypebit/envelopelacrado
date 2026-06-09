@@ -50,21 +50,38 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Erro ao salvar página' }, { status: 500 })
   }
 
-  // Salva momentos
-  if (dadosFotos?.momentos?.length > 0) {
-    const { error: momentosError } = await supabase.from('momentos').insert(
-      dadosFotos.momentos.map((m: any, i: number) => ({
+  // Salva momentos da timeline (step 2 — tipo 'momento')
+  const momentosTimeline = dadosCriacao?.momentos?.filter((m: any) => m.titulo?.trim())
+  if (momentosTimeline?.length > 0) {
+    const { error: err1 } = await supabase.from('momentos').insert(
+      momentosTimeline.map((m: any, i: number) => ({
         page_id: pagina.id,
         titulo: m.titulo,
         descricao: m.descricao?.trim() || null,
         data: m.data?.trim() || null,
-        foto_url: m.foto_url || null,
+        foto_url: m.fotoUrl || null,
         ordem: i,
+        tipo: 'momento',
       }))
     )
-    if (momentosError) {
-      console.error('[paginas/criar] momentos insert error:', momentosError.message)
-    }
+    if (err1) console.error('[paginas/criar] momentos timeline error:', err1.message)
+  }
+
+  // Salva fotos da galeria (step 3 — tipo 'galeria')
+  const fotosGaleria = dadosFotos?.momentos?.filter((m: any) => m.foto_url || m.titulo?.trim())
+  if (fotosGaleria?.length > 0) {
+    const { error: err2 } = await supabase.from('momentos').insert(
+      fotosGaleria.map((m: any, i: number) => ({
+        page_id: pagina.id,
+        titulo: m.titulo?.trim() || 'Foto',
+        descricao: m.descricao?.trim() || null,
+        data: m.data?.trim() || null,
+        foto_url: m.foto_url || null,
+        ordem: 100 + i,
+        tipo: 'galeria',
+      }))
+    )
+    if (err2) console.error('[paginas/criar] fotos galeria error:', err2.message)
   }
 
   return NextResponse.json({

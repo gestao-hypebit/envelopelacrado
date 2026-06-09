@@ -31,6 +31,7 @@ export interface Momento {
   data: string | null
   foto_url: string | null
   ordem: number
+  tipo: 'momento' | 'galeria'
   created_at: string
 }
 

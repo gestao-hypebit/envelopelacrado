@@ -4,13 +4,15 @@ import { useForm, useFieldArray, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
-import { Plus, Trash2, Check } from 'lucide-react'
+import { useEffect, useState, useRef } from 'react'
+import { Plus, Trash2, Check, ImagePlus, X } from 'lucide-react'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
+import { createClient } from '@/lib/supabase/client'
 import type { DadosCriacao } from '@/types'
 
 const schema = z.object({
@@ -55,6 +57,11 @@ export default function FormularioHistoria() {
     },
   })
 
+  // Fotos dos momentos: estado separado (File não serializa para zod/JSON)
+  const [momentoArquivos, setMomentoArquivos] = useState<(File | null)[]>([null])
+  const [momentoPreviews, setMomentoPreviews] = useState<(string | null)[]>([null])
+  const fotoRefs = useRef<(HTMLInputElement | null)[]>([])
+
   // Restaura dados se usuário voltou para este step
   useEffect(() => {
     const saved = sessionStorage.getItem('memoriai_step2')
@@ -75,30 +82,92 @@ export default function FormularioHistoria() {
         tema: dados.tema ?? 'classico',
         tom: dados.tom ?? 'romantico',
       })
+      // Restaura previews de fotos já enviadas anteriormente
+      if (dados.momentos?.length > 0) {
+        const previews = dados.momentos.map((m: { fotoUrl?: string }) => m.fotoUrl ?? null)
+        setMomentoPreviews(previews)
+        setMomentoArquivos(previews.map(() => null))
+      }
     } catch {}
   }, [reset])
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'momentos',
-  })
-
+  const { fields, append, remove } = useFieldArray({ control, name: 'momentos' })
   const momentosWatch = useWatch({ control, name: 'momentos' })
 
-  const onSubmit = (data: FormData) => {
+  // Sincroniza arrays de fotos com o array de campos
+  useEffect(() => {
+    setMomentoArquivos((prev) => {
+      const arr = [...prev]
+      while (arr.length < fields.length) arr.push(null)
+      return arr.slice(0, fields.length)
+    })
+    setMomentoPreviews((prev) => {
+      const arr = [...prev]
+      while (arr.length < fields.length) arr.push(null)
+      return arr.slice(0, fields.length)
+    })
+  }, [fields.length])
+
+  const handleFotoChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const arquivo = e.target.files?.[0]
+    if (!arquivo) return
+    const url = URL.createObjectURL(arquivo)
+    setMomentoArquivos((prev) => { const a = [...prev]; a[index] = arquivo; return a })
+    setMomentoPreviews((prev) => { const a = [...prev]; a[index] = url; return a })
+  }
+
+  const removerFoto = (index: number) => {
+    setMomentoArquivos((prev) => { const a = [...prev]; a[index] = null; return a })
+    setMomentoPreviews((prev) => { const a = [...prev]; a[index] = null; return a })
+    if (fotoRefs.current[index]) fotoRefs.current[index]!.value = ''
+  }
+
+  const removerMomento = (index: number) => {
+    remove(index)
+    setMomentoArquivos((prev) => prev.filter((_, i) => i !== index))
+    setMomentoPreviews((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const onSubmit = async (data: FormData) => {
+    const supabase = createClient()
+    const fotoUrls: (string | null)[] = []
+
+    for (let i = 0; i < data.momentos.length; i++) {
+      const arquivo = momentoArquivos[i]
+      // Mantém URL já salva se não trocou o arquivo
+      const previewAnterior = momentoPreviews[i]
+      const isObjectUrl = previewAnterior?.startsWith('blob:')
+
+      if (arquivo) {
+        const ext = arquivo.name.split('.').pop()
+        const nome = `momentos/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+        const { data: uploaded, error } = await supabase.storage
+          .from('fotos-momentos')
+          .upload(nome, arquivo, { contentType: arquivo.type, cacheControl: '3600' })
+        fotoUrls.push(!error && uploaded
+          ? supabase.storage.from('fotos-momentos').getPublicUrl(uploaded.path).data.publicUrl
+          : null)
+      } else if (previewAnterior && !isObjectUrl) {
+        // URL do Supabase já salva numa sessão anterior
+        fotoUrls.push(previewAnterior)
+      } else {
+        fotoUrls.push(null)
+      }
+    }
+
     const dadosFormatados: DadosCriacao = {
       ...data,
       apelidos: data.apelidos ?? '',
       musicaUrl: data.musicaUrl ?? '',
-      momentos: data.momentos.map((m) => ({
+      momentos: data.momentos.map((m, i) => ({
         titulo: m.titulo,
         descricao: m.descricao ?? '',
         data: m.data ?? '',
+        fotoUrl: fotoUrls[i] ?? undefined,
       })),
     }
 
-    // Se a história mudou em relação ao que estava salvo, invalida narrativa
-    // e page_id para forçar nova geração no step 4
+    // Invalida narrativa se história mudou
     const salvoAnterior = sessionStorage.getItem('memoriai_step2')
     if (salvoAnterior) {
       try {
@@ -109,7 +178,6 @@ export default function FormularioHistoria() {
           anterior.comoSeConheceram !== dadosFormatados.comoSeConheceram ||
           anterior.momentos.length !== dadosFormatados.momentos.length ||
           anterior.tom !== dadosFormatados.tom
-
         if (historiaAlterada) {
           sessionStorage.removeItem('memoriai_narrativa')
           sessionStorage.removeItem('memoriai_page_id')
@@ -133,60 +201,35 @@ export default function FormularioHistoria() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="nome1">Seu nome</Label>
-            <Input
-              id="nome1"
-              placeholder="Ex: Ana"
-              {...register('nome1')}
-            />
-            {errors.nome1 && (
-              <p className="text-red-500 text-xs">{errors.nome1.message}</p>
-            )}
+            <Input id="nome1" placeholder="Ex: Ana" {...register('nome1')} />
+            {errors.nome1 && <p className="text-red-500 text-xs">{errors.nome1.message}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="nome2">Nome do seu amor</Label>
-            <Input
-              id="nome2"
-              placeholder="Ex: João"
-              {...register('nome2')}
-            />
-            {errors.nome2 && (
-              <p className="text-red-500 text-xs">{errors.nome2.message}</p>
-            )}
+            <Input id="nome2" placeholder="Ex: João" {...register('nome2')} />
+            {errors.nome2 && <p className="text-red-500 text-xs">{errors.nome2.message}</p>}
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email">Seu email <span className="text-gray-400 text-xs">(para receber o link e o QR Code)</span></Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="seu@email.com"
-            {...register('email')}
-          />
-          {errors.email && (
-            <p className="text-red-500 text-xs">{errors.email.message}</p>
-          )}
+          <Label htmlFor="email">
+            Seu email <span className="text-gray-400 text-xs">(para receber o link e o QR Code)</span>
+          </Label>
+          <Input id="email" type="email" placeholder="seu@email.com" {...register('email')} />
+          {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="dataInicio">Quando começou o relacionamento?</Label>
-          <Input
-            id="dataInicio"
-            type="date"
-            {...register('dataInicio')}
-          />
-          {errors.dataInicio && (
-            <p className="text-red-500 text-xs">{errors.dataInicio.message}</p>
-          )}
+          <Input id="dataInicio" type="date" {...register('dataInicio')} />
+          {errors.dataInicio && <p className="text-red-500 text-xs">{errors.dataInicio.message}</p>}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="apelidos">Apelidos carinhosos <span className="text-gray-400 text-xs">(opcional)</span></Label>
-          <Input
-            id="apelidos"
-            placeholder="Ex: meu amor, chuchu, gatinho..."
-            {...register('apelidos')}
-          />
+          <Label htmlFor="apelidos">
+            Apelidos carinhosos <span className="text-gray-400 text-xs">(opcional)</span>
+          </Label>
+          <Input id="apelidos" placeholder="Ex: meu amor, chuchu, gatinho..." {...register('apelidos')} />
         </div>
       </div>
 
@@ -208,82 +251,138 @@ export default function FormularioHistoria() {
         </div>
       </div>
 
-      {/* Momentos marcantes */}
+      {/* Momentos marcantes — aparecem como polaroids na timeline */}
       <div className="bg-white rounded-2xl p-6 border border-[#F5EDE3] space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-display text-xl font-bold text-gray-900">
-            Momentos marcantes
-          </h3>
+          <h3 className="font-display text-xl font-bold text-gray-900">Momentos marcantes</h3>
           <span className="text-xs text-gray-400">
             {momentosWatch?.filter(m => m?.titulo?.trim()).length ?? 0}/{fields.length} preenchidos
           </span>
         </div>
 
-        <p className="text-sm text-gray-500">
-          Preencha os campos abaixo — cada momento é incluído automaticamente na narrativa da IA.
-        </p>
+        <div className="rounded-xl bg-[#FEF2F5] border border-[#F5C6D3] px-4 py-3 text-sm text-[#a05068] leading-relaxed">
+          Esses momentos viram os <strong>polaroids da timeline</strong>. Você pode adicionar uma foto
+          a cada um (opcional) — ela aparece no polaroid. As fotos da galeria você adiciona na próxima etapa, separado.
+        </div>
 
         <div className="space-y-4">
           {fields.map((field, index) => {
             const titulo = momentosWatch?.[index]?.titulo?.trim() ?? ''
             const preenchido = titulo.length >= 2
+            const preview = momentoPreviews[index]
 
             return (
               <div
                 key={field.id}
-                className={`border rounded-xl p-4 space-y-3 transition-colors ${
-                  preenchido
-                    ? 'border-green-200 bg-green-50/40'
-                    : 'border-[#F5EDE3] bg-[#FAFAF8]'
+                className={`border rounded-xl overflow-hidden transition-colors ${
+                  preenchido ? 'border-green-200' : 'border-[#F5EDE3]'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {preenchido ? (
-                      <span className="flex items-center gap-1 text-xs font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
-                        <Check className="w-3 h-3" />
-                        Incluído na história
-                      </span>
-                    ) : (
-                      <span className="text-xs font-semibold text-[#C9768F]">
-                        Momento {index + 1}
-                      </span>
-                    )}
-                  </div>
+                {/* Header do card */}
+                <div className={`flex items-center justify-between px-4 py-2.5 ${preenchido ? 'bg-green-50/40' : 'bg-[#FAFAF8]'}`}>
+                  {preenchido ? (
+                    <span className="flex items-center gap-1 text-xs font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                      <Check className="w-3 h-3" /> Incluído na história
+                    </span>
+                  ) : (
+                    <span className="text-xs font-semibold text-[#C9768F]">Momento {index + 1}</span>
+                  )}
                   {fields.length > 1 && (
                     <button
                       type="button"
-                      onClick={() => remove(index)}
+                      onClick={() => removerMomento(index)}
                       className="text-gray-300 hover:text-red-400 transition-colors"
-                      title="Remover este momento"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   )}
                 </div>
 
-                <Input
-                  placeholder="Título do momento (ex: Primeira viagem juntos)"
-                  {...register(`momentos.${index}.titulo`)}
-                />
-                {errors.momentos?.[index]?.titulo && (
-                  <p className="text-red-500 text-xs">{errors.momentos[index]?.titulo?.message}</p>
-                )}
-                <Textarea
-                  placeholder="Descreve com detalhes... onde foi? o que sentiram? (opcional)"
-                  className="min-h-[80px]"
-                  {...register(`momentos.${index}.descricao`)}
-                />
-                <Input
-                  type="date"
-                  {...register(`momentos.${index}.data`)}
-                />
+                {/* Conteúdo: foto à esquerda, campos à direita */}
+                <div className="grid grid-cols-1 sm:grid-cols-[96px_1fr] gap-0">
+                  {/* Miniatura da foto */}
+                  <div className="hidden sm:block relative bg-[#F5EDE3] border-r border-[#F5EDE3]">
+                    {preview ? (
+                      <div className="relative w-24 h-full min-h-[120px]">
+                        <Image src={preview} alt="foto do momento" fill className="object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removerFoto(index)}
+                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/70 transition-colors"
+                        >
+                          <X className="w-3 h-3 text-white" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => fotoRefs.current[index]?.click()}
+                        className="w-full h-full min-h-[120px] flex flex-col items-center justify-center gap-1 hover:bg-[#F0E4D4] transition-colors"
+                        title="Adicionar foto ao polaroid"
+                      >
+                        <ImagePlus className="w-5 h-5 text-[#C9768F] opacity-50" />
+                        <span className="text-[10px] text-gray-400 text-center leading-tight px-1">
+                          foto<br />opcional
+                        </span>
+                      </button>
+                    )}
+                    <input
+                      ref={(el) => { fotoRefs.current[index] = el }}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleFotoChange(index, e)}
+                    />
+                  </div>
+
+                  {/* Campos de texto */}
+                  <div className="p-4 space-y-3">
+                    <Input
+                      placeholder="Título do momento (ex: Primeira viagem juntos)"
+                      {...register(`momentos.${index}.titulo`)}
+                    />
+                    {errors.momentos?.[index]?.titulo && (
+                      <p className="text-red-500 text-xs">{errors.momentos[index]?.titulo?.message}</p>
+                    )}
+                    <Textarea
+                      placeholder="Descreve com detalhes... (opcional, enriquece a narrativa)"
+                      className="min-h-[72px]"
+                      {...register(`momentos.${index}.descricao`)}
+                    />
+                    <Input type="date" {...register(`momentos.${index}.data`)} />
+
+                    {/* Botão de foto — visível apenas no mobile */}
+                    <div className="sm:hidden">
+                      {preview ? (
+                        <div className="flex items-center gap-2">
+                          <div className="relative w-10 h-10 rounded overflow-hidden flex-shrink-0">
+                            <Image src={preview} alt="foto" fill className="object-cover" />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removerFoto(index)}
+                            className="text-xs text-red-400 hover:underline"
+                          >
+                            Remover foto
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => fotoRefs.current[index]?.click()}
+                          className="flex items-center gap-1.5 text-xs text-[#C9768F] hover:underline"
+                        >
+                          <ImagePlus className="w-3.5 h-3.5" /> Adicionar foto ao polaroid (opcional)
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             )
           })}
         </div>
 
-        {/* Botão de adicionar só aparece quando o último momento já tem título preenchido */}
         {fields.length < 5 && (momentosWatch?.[fields.length - 1]?.titulo?.trim().length ?? 0) >= 2 && (
           <Button
             type="button"
@@ -342,19 +441,12 @@ export default function FormularioHistoria() {
             placeholder="https://www.youtube.com/watch?v=..."
             {...register('musicaUrl')}
           />
-          {errors.musicaUrl && (
-            <p className="text-red-500 text-xs">{errors.musicaUrl.message}</p>
-          )}
+          {errors.musicaUrl && <p className="text-red-500 text-xs">{errors.musicaUrl.message}</p>}
         </div>
       </div>
 
-      <Button
-        type="submit"
-        size="lg"
-        disabled={isSubmitting}
-        className="w-full"
-      >
-        {isSubmitting ? 'Salvando...' : 'Próximo: Fotos →'}
+      <Button type="submit" size="lg" disabled={isSubmitting} className="w-full">
+        {isSubmitting ? 'Salvando...' : 'Próximo: Fotos da galeria →'}
       </Button>
     </form>
   )

@@ -161,10 +161,18 @@ export default function LandingPage() {
           <div className="max-w-4xl mx-auto">
             <div className="font-display text-xl font-bold mb-2" style={{ color: '#C9768F' }}>💌 Envelope Lacrado</div>
             <p className="text-sm mb-6" style={{ color: 'rgba(240,228,212,0.4)' }}>A história de vocês, lacrada com amor.</p>
-            <div className="flex items-center justify-center gap-6 text-sm mb-6" style={{ color: 'rgba(240,228,212,0.35)' }}>
+            <div className="flex flex-wrap items-center justify-center gap-6 text-sm mb-4" style={{ color: 'rgba(240,228,212,0.35)' }}>
               <a href="#como-funciona" className="hover:text-[#C9768F] transition-colors">Como funciona</a>
               <a href="#preco" className="hover:text-[#C9768F] transition-colors">Preço</a>
               <Link href="/criar" className="hover:text-[#C9768F] transition-colors">Criar</Link>
+              <a
+                href="https://wa.me/5516996177828?text=Olá!%20Tenho%20uma%20dúvida%20sobre%20o%20Envelope%20Lacrado"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[#C9768F] transition-colors flex items-center gap-1.5"
+              >
+                <span>📱</span> (16) 99617-7828
+              </a>
             </div>
             <p className="text-xs" style={{ color: 'rgba(240,228,212,0.2)' }}>Feito com amor no Brasil · © 2026 Envelope Lacrado</p>
           </div>

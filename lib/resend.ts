@@ -230,14 +230,27 @@ export async function enviarEmailConfirmacao(page: Pagina) {
 
           <!-- ══ EDITAR ══ -->
           <tr>
-            <td align="center" style="padding:36px 48px;background-color:#FAFAF8;">
-              <p style="margin:0 0 8px;font-size:14px;color:#888;font-family:Arial,sans-serif;">
-                Quer adicionar mais fotos ou editar a narrativa?
+            <td align="center" style="padding:44px 48px 48px;background-color:#FAFAF8;">
+              <p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#1a0e14;font-family:Arial,sans-serif;">
+                Quer fazer alguma alteração?
               </p>
-              <a href="${baseUrl}/dashboard"
-                style="font-size:14px;color:#C9768F;font-family:Arial,sans-serif;text-decoration:underline;">
-                Acesse o painel de edição →
-              </a>
+              <p style="margin:0 0 24px;font-size:13px;color:#888;font-family:Arial,sans-serif;line-height:1.65;">
+                No painel você edita a narrativa, troca as fotos e acompanha<br>
+                as mensagens que ${nome2} deixar na página.
+              </p>
+              <table cellpadding="0" cellspacing="0" border="0" align="center">
+                <tr>
+                  <td style="border:1.5px solid #C9768F;border-radius:50px;">
+                    <a href="${baseUrl}/dashboard"
+                      style="display:inline-block;padding:13px 36px;font-size:14px;font-weight:700;color:#C9768F;text-decoration:none;font-family:Arial,sans-serif;letter-spacing:0.2px;border-radius:50px;">
+                      Acessar o painel de edição →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:12px 0 0;font-size:11px;color:#ccc;font-family:Arial,sans-serif;">
+                Informe o email que você usou ao criar a página
+              </p>
             </td>
           </tr>
 
