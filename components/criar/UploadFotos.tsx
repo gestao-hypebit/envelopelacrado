@@ -136,7 +136,7 @@ export default function UploadFotos() {
     <div className="space-y-4">
       {momentos.map((momento, index) => (
         <MomentoItem
-          key={index}
+          key={`momento-${index}-${momento.titulo}`}
           momento={momento}
           index={index}
           onChange={(i, campo, valor) => {

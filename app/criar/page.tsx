@@ -19,6 +19,17 @@ function CriarContent() {
   const referral = searchParams.get('ref')
 
   const handleSelecionar = () => {
+    // Limpa toda a sessão anterior para garantir fluxo limpo
+    ;[
+      'memoriai_step1',
+      'memoriai_step2',
+      'memoriai_step3',
+      'memoriai_narrativa',
+      'memoriai_page_id',
+      'memoriai_slug',
+      'memoriai_preview_token',
+    ].forEach((k) => sessionStorage.removeItem(k))
+
     sessionStorage.setItem('memoriai_step1', JSON.stringify({ tipo: 'surpresa' }))
     router.push('/criar/historia')
   }

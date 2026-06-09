@@ -96,6 +96,30 @@ export default function FormularioHistoria() {
         data: m.data ?? '',
       })),
     }
+
+    // Se a história mudou em relação ao que estava salvo, invalida narrativa
+    // e page_id para forçar nova geração no step 4
+    const salvoAnterior = sessionStorage.getItem('memoriai_step2')
+    if (salvoAnterior) {
+      try {
+        const anterior = JSON.parse(salvoAnterior) as DadosCriacao
+        const historiaAlterada =
+          anterior.nome1 !== dadosFormatados.nome1 ||
+          anterior.nome2 !== dadosFormatados.nome2 ||
+          anterior.comoSeConheceram !== dadosFormatados.comoSeConheceram ||
+          anterior.momentos.length !== dadosFormatados.momentos.length ||
+          anterior.tom !== dadosFormatados.tom
+
+        if (historiaAlterada) {
+          sessionStorage.removeItem('memoriai_narrativa')
+          sessionStorage.removeItem('memoriai_page_id')
+          sessionStorage.removeItem('memoriai_slug')
+          sessionStorage.removeItem('memoriai_preview_token')
+          sessionStorage.removeItem('memoriai_step3')
+        }
+      } catch {}
+    }
+
     sessionStorage.setItem('memoriai_step2', JSON.stringify(dadosFormatados))
     router.push('/criar/fotos')
   }

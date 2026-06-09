@@ -4,48 +4,63 @@ import PreviewSection from '@/components/landing/PreviewSection'
 import Diferenciais from '@/components/landing/Diferenciais'
 import Depoimentos from '@/components/landing/Depoimentos'
 import Precos from '@/components/landing/Precos'
+import BannerUrgencia from '@/components/landing/BannerUrgencia'
+import StickyCtaMobile from '@/components/landing/StickyCtaMobile'
 import TrackEvent from '@/components/TrackEvent'
 import Link from 'next/link'
 
 const faqItems = [
   {
-    pergunta: 'A página fica no ar para sempre?',
-    resposta: 'Sim! Você paga uma vez e a página fica no ar para sempre. Sem mensalidades, sem surpresas.',
-  },
-  {
-    pergunta: 'Posso editar depois?',
-    resposta: 'Sim, você pode editar textos, fotos e regenerar a narrativa da IA quando quiser, pelo seu dashboard.',
-  },
-  {
     pergunta: 'Em quanto tempo fica pronto?',
-    resposta: 'Na hora! Assim que o pagamento é confirmado, você recebe o link e o QR Code por email. Todo o processo leva menos de 10 minutos.',
+    resposta:
+      'Na hora! Preencha o formulário, confirme o pagamento e sua página já está no ar — o processo todo leva menos de 10 minutos, direto do celular.',
+  },
+  {
+    pergunta: 'A página fica disponível para sempre?',
+    resposta:
+      'Sim. Você paga uma vez e a página fica no ar para sempre. Sem mensalidades, sem renovações, sem surpresas.',
+  },
+  {
+    pergunta: 'Funciona no celular?',
+    resposta:
+      'Totalmente! A página foi criada 100% para celular. Quem recebe a surpresa é só abrir o link no navegador — sem instalar nada, sem criar conta.',
+  },
+  {
+    pergunta: 'Como a pessoa amada recebe a surpresa?',
+    resposta:
+      'Você recebe por email um QR Code para imprimir e entregar pessoalmente — dentro de um cartão, junto de um presente ou num bilhetinho. Ao apontar o celular para o código, a página de vocês abre direto no navegador.',
+  },
+  {
+    pergunta: 'Posso editar depois de publicar?',
+    resposta:
+      'Sim, você pode editar textos, fotos e até regenerar a narrativa da IA quando quiser, pelo seu dashboard.',
   },
   {
     pergunta: 'Meu par precisa ter conta ou instalar algo?',
-    resposta: 'Não. É só apontar o celular para o QR Code (ou clicar no link) e abrir no navegador. Funciona em qualquer celular.',
-  },
-  {
-    pergunta: 'Como funciona a IA?',
-    resposta: 'Você descreve a história do casal — como se conheceram, momentos marcantes, apelidos — e nossa IA escreve uma narrativa única e poética, específica para vocês. Sem textos genéricos.',
-  },
-  {
-    pergunta: 'Posso usar para noivado ou pedido de namoro?',
-    resposta: 'Sim! Muita gente usa justamente para isso. O site é perfeito para momentos especiais de qualquer tipo.',
+    resposta:
+      'Não. É só apontar o celular para o QR Code (ou clicar no link) e abrir no navegador. Funciona em qualquer celular.',
   },
 ]
 
 export default function LandingPage() {
   return (
-    <main>
-      {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b" style={{ background: 'rgba(250,250,248,0.9)', borderColor: '#F5EDE3' }}>
+    <main style={{ background: '#0d0612' }}>
+      <BannerUrgencia />
+
+      {/* Navbar escuro */}
+      <nav
+        className="fixed left-0 right-0 z-50 backdrop-blur-md border-b"
+        style={{ top: '40px', background: 'rgba(13,6,18,0.92)', borderColor: 'rgba(201,118,143,0.12)' }}
+      >
         <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between h-16">
           <span className="font-display text-xl font-bold" style={{ color: '#C9768F' }}>💌 Envelope Lacrado</span>
           <div className="flex items-center gap-6">
-            <a href="#como-funciona" className="hidden sm:block text-sm transition-colors hover:text-[#C9768F]" style={{ color: '#A0785A' }}>
+            <a href="#como-funciona" className="hidden sm:block text-sm transition-colors hover:text-[#C9768F]"
+              style={{ color: 'rgba(240,228,212,0.6)' }}>
               Como funciona
             </a>
-            <a href="#preco" className="hidden sm:block text-sm transition-colors hover:text-[#C9768F]" style={{ color: '#A0785A' }}>
+            <a href="#preco" className="hidden sm:block text-sm transition-colors hover:text-[#C9768F]"
+              style={{ color: 'rgba(240,228,212,0.6)' }}>
               Preço
             </a>
             <Link href="/criar"
@@ -57,7 +72,8 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      <div className="pt-16">
+      {/* Content — offset: 40px (banner) + 64px (nav) = 104px */}
+      <div style={{ paddingTop: '104px' }} className="pb-24 lg:pb-0">
         <TrackEvent name="ViewContent" params={{ content_name: 'Landing Page', content_type: 'product', value: 19.90, currency: 'BRL' }} />
         <Hero />
 
@@ -78,25 +94,32 @@ export default function LandingPage() {
         </div>
 
         {/* FAQ */}
-        <section className="py-28 px-6 lg:px-8 bg-white">
+        <section className="py-28 px-6 lg:px-8" style={{ background: '#0d0612' }}>
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-16">
               <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: '#C9768F' }}>Dúvidas</span>
-              <h2 className="font-display text-4xl sm:text-5xl font-bold mt-3" style={{ color: '#1a0e14' }}>
+              <h2 className="font-display text-4xl sm:text-5xl font-bold mt-3" style={{ color: '#F0E4D4' }}>
                 Perguntas frequentes
               </h2>
             </div>
             <div className="space-y-3">
               {faqItems.map((item) => (
-                <details key={item.pergunta} className="group rounded-2xl overflow-hidden border"
-                  style={{ background: '#FAFAF8', borderColor: '#F5EDE3' }}>
-                  <summary className="flex items-center justify-between p-6 cursor-pointer list-none hover:bg-[#F5EDE3] transition-colors"
-                    style={{ color: '#1a0e14' }}>
+                <details
+                  key={item.pergunta}
+                  className="group rounded-2xl overflow-hidden border"
+                  style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(240,228,212,0.08)' }}
+                >
+                  <summary
+                    className="flex items-center justify-between p-6 cursor-pointer list-none transition-colors hover:bg-[#C9768F]/10"
+                    style={{ color: '#F0E4D4' }}
+                  >
                     <span className="font-semibold pr-4">{item.pergunta}</span>
-                    <span className="text-xl leading-none flex-shrink-0 transition-transform group-open:rotate-45"
-                      style={{ color: '#C9768F' }}>+</span>
+                    <span
+                      className="text-xl leading-none flex-shrink-0 transition-transform group-open:rotate-45"
+                      style={{ color: '#C9768F' }}
+                    >+</span>
                   </summary>
-                  <div className="px-6 pb-6 leading-relaxed" style={{ color: '#7a6070' }}>
+                  <div className="px-6 pb-6 leading-relaxed" style={{ color: 'rgba(240,228,212,0.6)' }}>
                     {item.resposta}
                   </div>
                 </details>
@@ -106,10 +129,14 @@ export default function LandingPage() {
         </section>
 
         {/* CTA final */}
-        <section className="py-28 px-6 relative overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, #C9768F 0%, #b5607a 50%, #C9A96E 100%)' }}>
-          <div className="absolute inset-0 pointer-events-none opacity-10"
-            style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        <section
+          className="py-28 px-6 relative overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, #C9768F 0%, #b5607a 50%, #C9A96E 100%)' }}
+        >
+          <div
+            className="absolute inset-0 pointer-events-none opacity-10"
+            style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '40px 40px' }}
+          />
           <div className="relative z-10 max-w-2xl mx-auto text-center">
             <p className="text-xs tracking-widest uppercase font-semibold mb-4 text-white/70">
               comece agora
@@ -129,19 +156,21 @@ export default function LandingPage() {
         </section>
 
         {/* Footer */}
-        <footer className="py-12 px-6 text-center bg-gray-900">
+        <footer className="py-12 px-6 text-center" style={{ background: '#080410', borderTop: '1px solid rgba(201,118,143,0.08)' }}>
           <div className="max-w-4xl mx-auto">
             <div className="font-display text-xl font-bold mb-2" style={{ color: '#C9768F' }}>💌 Envelope Lacrado</div>
-            <p className="text-sm mb-6 text-gray-400">A história de vocês, lacrada com amor.</p>
-            <div className="flex items-center justify-center gap-6 text-sm mb-6 text-gray-500">
+            <p className="text-sm mb-6" style={{ color: 'rgba(240,228,212,0.4)' }}>A história de vocês, lacrada com amor.</p>
+            <div className="flex items-center justify-center gap-6 text-sm mb-6" style={{ color: 'rgba(240,228,212,0.35)' }}>
               <a href="#como-funciona" className="hover:text-[#C9768F] transition-colors">Como funciona</a>
               <a href="#preco" className="hover:text-[#C9768F] transition-colors">Preço</a>
               <Link href="/criar" className="hover:text-[#C9768F] transition-colors">Criar</Link>
             </div>
-            <p className="text-xs text-gray-700">Feito com amor no Brasil · © 2026 Envelope Lacrado</p>
+            <p className="text-xs" style={{ color: 'rgba(240,228,212,0.2)' }}>Feito com amor no Brasil · © 2026 Envelope Lacrado</p>
           </div>
         </footer>
       </div>
+
+      <StickyCtaMobile />
     </main>
   )
 }

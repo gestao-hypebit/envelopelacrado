@@ -309,16 +309,16 @@ export default function PreviewSection() {
   const c = useContadorMock()
 
   return (
-    <section className="py-28 px-4 sm:px-6 lg:px-8 overflow-hidden" style={{ background:'linear-gradient(180deg,white 0%,#FAFAF8 100%)' }}>
+    <section className="py-28 px-4 sm:px-6 lg:px-8 overflow-hidden" style={{ background:'linear-gradient(180deg, #0d0612 0%, #130818 100%)' }}>
       <div className="max-w-6xl mx-auto">
 
         {/* Título */}
         <motion.div initial={{ opacity:0, y:24 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} className="text-center mb-14">
           <span className="text-xs tracking-widest uppercase font-semibold" style={{ color:'#C9768F' }}>demo ao vivo</span>
-          <h2 className="font-display text-4xl sm:text-5xl font-bold mt-3 mb-4" style={{ color:'#1a0e14' }}>
+          <h2 className="font-display text-4xl sm:text-5xl font-bold mt-3 mb-4" style={{ color:'#F0E4D4' }}>
             Veja como eles vão abrir
           </h2>
-          <p className="text-lg max-w-xl mx-auto" style={{ color:'#A0785A' }}>
+          <p className="text-lg max-w-xl mx-auto" style={{ color:'rgba(240,228,212,0.55)' }}>
             Cada seção abaixo é idêntica à página real — contador ao vivo, narrativa, fotos, roleta e messageboard.
           </p>
         </motion.div>
@@ -389,13 +389,13 @@ export default function PreviewSection() {
           <div className="hidden lg:flex flex-col gap-3 pt-10">
             {ANOTACOES.map((a, i) => (
               <motion.div key={a.titulo} initial={{ opacity:0, x:20 }} whileInView={{ opacity:1, x:0 }} viewport={{ once:true }} transition={{ delay: i * 0.08 + 0.2 }}
-                className="flex items-start gap-3 p-3 rounded-xl border" style={{ background:'white', borderColor:'#F5EDE3' }}>
+                className="flex items-start gap-3 p-3 rounded-xl border" style={{ background:'rgba(255,255,255,0.04)', borderColor:'rgba(240,228,212,0.08)' }}>
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-base" style={{ background:`${a.cor}12`, border:`1px solid ${a.cor}25` }}>
                   {a.emoji}
                 </div>
                 <div>
-                  <p className="text-xs font-semibold mb-0.5" style={{ color:'#1a0e14' }}>{a.titulo}</p>
-                  <p className="text-xs leading-relaxed" style={{ color:'#A0785A' }}>{a.desc}</p>
+                  <p className="text-xs font-semibold mb-0.5" style={{ color:'#F0E4D4' }}>{a.titulo}</p>
+                  <p className="text-xs leading-relaxed" style={{ color:'rgba(240,228,212,0.55)' }}>{a.desc}</p>
                 </div>
               </motion.div>
             ))}

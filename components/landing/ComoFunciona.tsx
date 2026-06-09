@@ -10,8 +10,8 @@ const passos = [
     titulo: 'Conta a história',
     desc: 'Descreve como se conheceram, os momentos marcantes, apelidos e escolhe o tema visual. Leva menos de 5 minutos.',
     cor: '#C9768F',
-    bg: '#FEF2F5',
-    borda: '#F5C6D4',
+    borda: 'rgba(201,118,143,0.25)',
+    bg: 'rgba(201,118,143,0.07)',
     detalhe: 'Formulário guiado passo a passo',
   },
   {
@@ -20,8 +20,8 @@ const passos = [
     titulo: 'A IA escreve',
     desc: 'Nossa IA transforma os detalhes em uma narrativa poética e única — você vê o texto aparecer em tempo real.',
     cor: '#C9A96E',
-    bg: '#FEF9F0',
-    borda: '#F5DFA8',
+    borda: 'rgba(201,169,110,0.25)',
+    bg: 'rgba(201,169,110,0.07)',
     detalhe: 'Powered by Claude (Anthropic)',
   },
   {
@@ -30,15 +30,15 @@ const passos = [
     titulo: 'Surpreende',
     desc: 'Receba o link e o QR Code por email. Imprima, mande pelo WhatsApp — e aguarde a reação.',
     cor: '#9B8EC4',
-    bg: '#F4F2FC',
-    borda: '#D0C8EC',
+    borda: 'rgba(155,142,196,0.25)',
+    bg: 'rgba(155,142,196,0.07)',
     detalhe: 'QR Code + link vitalício',
   },
 ]
 
 export default function ComoFunciona() {
   return (
-    <section className="py-32 px-6 lg:px-8 bg-white">
+    <section className="py-32 px-6 lg:px-8" style={{ background: '#0d0612' }}>
       <div className="max-w-6xl mx-auto">
 
         <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
@@ -46,10 +46,10 @@ export default function ComoFunciona() {
           <span className="text-xs tracking-widest uppercase font-semibold" style={{ color: '#C9768F' }}>
             simples assim
           </span>
-          <h2 className="font-display text-4xl sm:text-5xl font-bold mt-3 mb-4" style={{ color: '#1a0e14' }}>
+          <h2 className="font-display text-4xl sm:text-5xl font-bold mt-3 mb-4" style={{ color: '#F0E4D4' }}>
             Em 3 passos, a surpresa está pronta
           </h2>
-          <p className="text-lg max-w-md mx-auto" style={{ color: '#A0785A' }}>
+          <p className="text-lg max-w-md mx-auto" style={{ color: 'rgba(240,228,212,0.55)' }}>
             Da ideia à emoção em menos de 10 minutos.
           </p>
         </motion.div>
@@ -57,7 +57,7 @@ export default function ComoFunciona() {
         <div className="grid md:grid-cols-3 gap-6 relative">
           {/* Linha conectora */}
           <div className="hidden md:block absolute top-14 left-[calc(16.66%+2rem)] right-[calc(16.66%+2rem)] h-px"
-            style={{ background: 'linear-gradient(to right, #C9768F44, #C9A96E44, #9B8EC444)' }} />
+            style={{ background: 'linear-gradient(to right, rgba(201,118,143,0.4), rgba(201,169,110,0.4), rgba(155,142,196,0.4))' }} />
 
           {passos.map((p, i) => (
             <motion.div key={p.num}
@@ -65,28 +65,28 @@ export default function ComoFunciona() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: i * 0.15 }}>
-              <div className="rounded-2xl p-8 h-full border transition-all hover:shadow-md"
+              <div className="rounded-2xl p-8 h-full border transition-all"
                 style={{ background: p.bg, borderColor: p.borda }}>
 
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center"
-                    style={{ background: 'white', border: `1px solid ${p.borda}`, boxShadow: `0 2px 8px ${p.cor}18` }}>
+                    style={{ background: 'rgba(255,255,255,0.06)', border: `1px solid ${p.borda}` }}>
                     <p.icon className="w-5 h-5" style={{ color: p.cor }} />
                   </div>
-                  <span className="font-display font-bold text-5xl" style={{ color: `${p.cor}18` }}>
+                  <span className="font-display font-bold text-5xl" style={{ color: `${p.cor}25` }}>
                     {p.num}
                   </span>
                 </div>
 
-                <h3 className="font-display text-xl font-bold mb-3" style={{ color: '#1a0e14' }}>
+                <h3 className="font-display text-xl font-bold mb-3" style={{ color: '#F0E4D4' }}>
                   {p.titulo}
                 </h3>
-                <p className="text-sm leading-relaxed mb-6" style={{ color: '#8a6a6a' }}>
+                <p className="text-sm leading-relaxed mb-6" style={{ color: 'rgba(240,228,212,0.6)' }}>
                   {p.desc}
                 </p>
 
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium"
-                  style={{ background: 'white', color: p.cor, border: `1px solid ${p.borda}` }}>
+                  style={{ background: 'rgba(255,255,255,0.06)', color: p.cor, border: `1px solid ${p.borda}` }}>
                   <span className="w-1.5 h-1.5 rounded-full" style={{ background: p.cor }} />
                   {p.detalhe}
                 </div>
