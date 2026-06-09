@@ -177,7 +177,7 @@ function CouplePagePreview() {
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden"
+    <section className="relative flex items-start lg:min-h-screen lg:items-center overflow-hidden"
       style={{ background: 'linear-gradient(160deg, #1e0818 0%, #0d0612 60%, #130818 100%)' }}>
 
       {/* Bokeh orbs */}
@@ -206,7 +206,7 @@ export default function Hero() {
           }} />
       ))}
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-16 lg:py-32 grid lg:grid-cols-2 gap-8 lg:gap-16 items-center w-full">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 pt-8 pb-14 lg:py-32 grid lg:grid-cols-2 gap-8 lg:gap-16 items-center w-full">
 
         {/* ── LEFT ── */}
         <div>
