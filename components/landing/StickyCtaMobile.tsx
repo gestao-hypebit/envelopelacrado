@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
+import { fbq } from '@/components/MetaPixel'
 
 export default function StickyCtaMobile() {
   return (
@@ -17,6 +18,7 @@ export default function StickyCtaMobile() {
     >
       <Link
         href="/criar"
+        onClick={() => fbq('track', 'Lead')}
         className="flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-white text-base w-full"
         style={{
           background: 'linear-gradient(135deg, #C9768F, #b5607a)',

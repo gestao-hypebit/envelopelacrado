@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { Brain, Timer, Users, MessageCircleHeart } from 'lucide-react'
 import Link from 'next/link'
+import { fbq } from '@/components/MetaPixel'
 
 const superpoderes = [
   {
@@ -111,7 +112,7 @@ export default function Diferenciais() {
           <p className="text-sm mb-6" style={{ color: 'rgba(240,228,212,0.5)' }}>
             R$ 19,90 · Pagamento único · Sem assinaturas
           </p>
-          <Link href="/criar">
+          <Link href="/criar" onClick={() => fbq('track', 'Lead')}>
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
               className="px-8 py-3.5 rounded-full font-semibold text-white shadow-md"
               style={{ background: 'linear-gradient(135deg, #C9768F, #b5607a)', boxShadow: '0 4px 20px rgba(201,118,143,0.35)' }}>

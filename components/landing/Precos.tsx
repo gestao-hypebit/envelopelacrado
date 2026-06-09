@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Check, ArrowRight, Infinity, ShieldCheck, Clock } from 'lucide-react'
+import { fbq } from '@/components/MetaPixel'
 
 const inclusos = [
   'Narrativa única gerada por IA',
@@ -83,7 +84,7 @@ export default function Precos() {
             </div>
 
             <div className="relative z-10">
-              <Link href="/criar">
+              <Link href="/criar" onClick={() => fbq('track', 'Lead')}>
                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                   className="group w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-white"
                   style={{ background: 'linear-gradient(135deg, #C9768F, #b5607a)', boxShadow: '0 8px 30px rgba(201,118,143,0.4)' }}>

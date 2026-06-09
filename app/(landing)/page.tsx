@@ -6,6 +6,7 @@ import Depoimentos from '@/components/landing/Depoimentos'
 import Precos from '@/components/landing/Precos'
 import BannerUrgencia from '@/components/landing/BannerUrgencia'
 import StickyCtaMobile from '@/components/landing/StickyCtaMobile'
+import CtaLink from '@/components/landing/CtaLink'
 import TrackEvent from '@/components/TrackEvent'
 import Link from 'next/link'
 
@@ -63,11 +64,11 @@ export default function LandingPage() {
               style={{ color: 'rgba(240,228,212,0.6)' }}>
               Preço
             </a>
-            <Link href="/criar"
+            <CtaLink href="/criar"
               className="px-5 py-2 rounded-full text-sm font-semibold text-white transition-all"
               style={{ background: 'linear-gradient(135deg, #C9768F, #b5607a)' }}>
               Criar agora
-            </Link>
+            </CtaLink>
           </div>
         </div>
       </nav>
@@ -147,11 +148,11 @@ export default function LandingPage() {
             <p className="text-lg mb-10 text-white/80">
               Menos de 10 minutos. R$ 19,90. A história de vocês, para sempre.
             </p>
-            <Link href="/criar"
+            <CtaLink href="/criar"
               className="inline-flex items-center gap-2 px-10 py-4 rounded-full text-lg font-bold transition-all hover:-translate-y-0.5 hover:shadow-2xl"
               style={{ background: 'white', color: '#C9768F', boxShadow: '0 8px 30px rgba(0,0,0,0.2)' }}>
               Criar minha surpresa →
-            </Link>
+            </CtaLink>
           </div>
         </section>
 

@@ -243,6 +243,7 @@ function PagamentoContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug }),
       })
+      fbq('track', 'Purchase', { value: 19.90, currency: 'BRL', content_type: 'product', content_ids: ['envelope-lacrado'] })
       setPago(true)
     } finally {
       setAtivando(false)

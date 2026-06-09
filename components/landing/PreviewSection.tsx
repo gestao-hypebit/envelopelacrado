@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { fbq } from '@/components/MetaPixel'
 
 /* ── Helpers ── */
 function pad(n: number) { return String(n).padStart(2, '0') }
@@ -401,7 +402,7 @@ export default function PreviewSection() {
             ))}
 
             <motion.div initial={{ opacity:0, y:12 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} transition={{ delay:0.7 }} className="mt-3">
-              <Link href="/criar">
+              <Link href="/criar" onClick={() => fbq('track', 'Lead')}>
                 <motion.button whileHover={{ scale:1.02 }} whileTap={{ scale:0.97 }}
                   className="w-full py-3.5 rounded-2xl font-bold text-white shadow-lg text-sm"
                   style={{ background:'linear-gradient(135deg,#C9768F,#b5607a)', boxShadow:'0 8px 30px rgba(201,118,143,0.35)' }}>

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { ArrowRight, Star } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { fbq } from '@/components/MetaPixel'
 
 function pad(n: number) { return String(n).padStart(2, '0') }
 
@@ -235,7 +236,7 @@ export default function Hero() {
 
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
             className="flex flex-col sm:flex-row gap-3 mb-12">
-            <Link href="/criar">
+            <Link href="/criar" onClick={() => fbq('track', 'Lead')}>
               <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                 className="group inline-flex items-center gap-2 px-8 py-4 rounded-full font-semibold text-white shadow-lg"
                 style={{ background: 'linear-gradient(135deg, #C9768F, #b5607a)', boxShadow: '0 8px 30px rgba(201,118,143,0.4)' }}>
