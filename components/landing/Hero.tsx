@@ -206,12 +206,12 @@ export default function Hero() {
           }} />
       ))}
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-32 grid lg:grid-cols-2 gap-16 items-center w-full">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-16 lg:py-32 grid lg:grid-cols-2 gap-8 lg:gap-16 items-center w-full">
 
         {/* ── LEFT ── */}
         <div>
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 mb-8 px-4 py-2 rounded-full border"
+            className="inline-flex items-center gap-2 mb-5 lg:mb-8 px-4 py-2 rounded-full border"
             style={{ borderColor: 'rgba(201,118,143,0.3)', background: 'rgba(201,118,143,0.08)' }}>
             <div className="flex gap-0.5">
               {[...Array(5)].map((_, i) => <Star key={i} className="w-3 h-3 fill-[#C9A96E] text-[#C9A96E]" />)}
@@ -220,8 +220,8 @@ export default function Hero() {
           </motion.div>
 
           <motion.h1 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
-            className="font-display font-bold leading-[1.05] mb-6"
-            style={{ fontSize: 'clamp(2.8rem, 5vw, 4.5rem)', color: '#F0E4D4' }}>
+            className="font-display font-bold leading-[1.1] mb-4 lg:mb-6"
+            style={{ fontSize: 'clamp(1.85rem, 6vw, 4.5rem)', color: '#F0E4D4' }}>
             A história de vocês,{' '}
             <span style={{ background: 'linear-gradient(135deg, #C9768F, #C9A96E)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               narrada pela IA
@@ -229,24 +229,24 @@ export default function Hero() {
           </motion.h1>
 
           <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg leading-relaxed mb-10" style={{ color: 'rgba(240,228,212,0.65)', maxWidth: 480 }}>
+            className="text-base sm:text-lg leading-relaxed mb-7 lg:mb-10" style={{ color: 'rgba(240,228,212,0.65)', maxWidth: 480 }}>
             Descreva o relacionamento e a IA escreve uma narrativa poética única.
             Entregue via QR Code — o presente digital que emociona de verdade.
           </motion.p>
 
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-3 mb-12">
-            <Link href="/criar" onClick={() => fbq('track', 'Lead')}>
+            className="flex flex-col sm:flex-row gap-3 mb-7 lg:mb-12">
+            <Link href="/criar" onClick={() => fbq('track', 'Lead')} className="block w-full sm:w-auto">
               <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                className="group inline-flex items-center gap-2 px-8 py-4 rounded-full font-semibold text-white shadow-lg"
+                className="group w-full sm:w-auto flex justify-center items-center gap-2 px-8 py-4 rounded-full font-semibold text-white shadow-lg"
                 style={{ background: 'linear-gradient(135deg, #C9768F, #b5607a)', boxShadow: '0 8px 30px rgba(201,118,143,0.4)' }}>
                 Criar minha surpresa
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </motion.button>
             </Link>
-            <a href="#demo-preview">
+            <a href="#demo-preview" className="block w-full sm:w-auto">
               <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-medium border transition-colors"
+                className="w-full sm:w-auto flex justify-center items-center gap-2 px-8 py-4 rounded-full font-medium border transition-colors"
                 style={{ borderColor: 'rgba(201,118,143,0.35)', color: '#C9768F', background: 'rgba(201,118,143,0.07)' }}>
                 💌 Ver exemplo completo
               </motion.button>

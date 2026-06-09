@@ -25,7 +25,7 @@ export default function BannerUrgencia() {
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-[60] flex items-center justify-center py-2.5 px-10 text-xs sm:text-sm font-semibold text-white text-center"
+      className="fixed top-0 left-0 right-0 z-[60] flex items-center justify-center py-2.5 px-4 sm:px-10 text-[10px] sm:text-sm font-semibold text-white text-center leading-tight"
       style={{ background: 'linear-gradient(90deg, #b5607a, #C9768F 50%, #b5607a)' }}
     >
       {texto}

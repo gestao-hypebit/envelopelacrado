@@ -310,11 +310,11 @@ export default function PreviewSection() {
   const c = useContadorMock()
 
   return (
-    <section className="py-28 px-4 sm:px-6 lg:px-8 overflow-hidden" style={{ background:'linear-gradient(180deg, #0d0612 0%, #130818 100%)' }}>
+    <section className="py-14 lg:py-28 px-4 sm:px-6 lg:px-8 overflow-hidden" style={{ background:'linear-gradient(180deg, #0d0612 0%, #130818 100%)' }}>
       <div className="max-w-6xl mx-auto">
 
         {/* Título */}
-        <motion.div initial={{ opacity:0, y:24 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} className="text-center mb-14">
+        <motion.div initial={{ opacity:0, y:24 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} className="text-center mb-8 lg:mb-14">
           <span className="text-xs tracking-widest uppercase font-semibold" style={{ color:'#C9768F' }}>demo ao vivo</span>
           <h2 className="font-display text-4xl sm:text-5xl font-bold mt-3 mb-4" style={{ color:'#F0E4D4' }}>
             Veja como eles vão abrir
@@ -415,10 +415,10 @@ export default function PreviewSection() {
         </div>
 
         {/* CTA mobile */}
-        <motion.div initial={{ opacity:0, y:16 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} className="mt-10 text-center lg:hidden">
-          <Link href="/criar">
+        <motion.div initial={{ opacity:0, y:16 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }} className="mt-8 text-center lg:hidden">
+          <Link href="/criar" onClick={() => fbq('track', 'Lead')} className="block w-full sm:w-auto sm:inline-block">
             <motion.button whileHover={{ scale:1.02 }} whileTap={{ scale:0.97 }}
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-semibold text-white shadow-lg"
+              className="w-full sm:w-auto flex sm:inline-flex justify-center items-center gap-2 px-8 py-4 rounded-full font-semibold text-white shadow-lg"
               style={{ background:'linear-gradient(135deg,#C9768F,#b5607a)', boxShadow:'0 8px 30px rgba(201,118,143,0.35)' }}>
               Quero criar igual a esse →
             </motion.button>

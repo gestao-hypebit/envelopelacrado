@@ -65,11 +65,11 @@ export default function Depoimentos() {
   const [featured, ...resto] = depoimentos
 
   return (
-    <section className="py-32 px-6 lg:px-8" style={{ background: '#0d0612' }}>
+    <section className="py-16 lg:py-32 px-6 lg:px-8" style={{ background: '#0d0612' }}>
       <div className="max-w-6xl mx-auto">
 
         <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          className="text-center mb-20">
+          className="text-center mb-10 lg:mb-20">
           <span className="text-xs tracking-widest uppercase font-semibold" style={{ color: '#C9768F' }}>quem já usou</span>
           <h2 className="font-display text-4xl sm:text-5xl font-bold mt-3 mb-4" style={{ color: '#F0E4D4' }}>
             Reações reais
@@ -81,7 +81,7 @@ export default function Depoimentos() {
 
         {/* Depoimento em destaque */}
         <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          className="relative rounded-3xl p-10 mb-8 overflow-hidden border"
+          className="relative rounded-3xl p-6 sm:p-10 mb-6 sm:mb-8 overflow-hidden border"
           style={{ background: 'rgba(201,118,143,0.07)', borderColor: 'rgba(201,118,143,0.25)' }}>
 
           <div className="absolute top-4 left-6 font-display font-bold select-none pointer-events-none leading-none"
@@ -89,7 +89,7 @@ export default function Depoimentos() {
 
           <div className="relative z-10 max-w-3xl mx-auto text-center">
             <Estrelas />
-            <p className="font-display text-2xl sm:text-3xl leading-relaxed mt-6 mb-8 italic"
+            <p className="font-display text-xl sm:text-3xl leading-relaxed mt-4 sm:mt-6 mb-5 sm:mb-8 italic"
               style={{ color: '#F0E4D4' }}>
               &ldquo;{featured.texto}&rdquo;
             </p>

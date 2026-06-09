@@ -38,11 +38,11 @@ const passos = [
 
 export default function ComoFunciona() {
   return (
-    <section className="py-32 px-6 lg:px-8" style={{ background: '#0d0612' }}>
+    <section className="py-16 lg:py-32 px-6 lg:px-8" style={{ background: '#0d0612' }}>
       <div className="max-w-6xl mx-auto">
 
         <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          className="text-center mb-20">
+          className="text-center mb-10 lg:mb-20">
           <span className="text-xs tracking-widest uppercase font-semibold" style={{ color: '#C9768F' }}>
             simples assim
           </span>
@@ -65,7 +65,7 @@ export default function ComoFunciona() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: i * 0.15 }}>
-              <div className="rounded-2xl p-8 h-full border transition-all"
+              <div className="rounded-2xl p-5 sm:p-8 h-full border transition-all"
                 style={{ background: p.bg, borderColor: p.borda }}>
 
                 <div className="flex items-center gap-4 mb-6">

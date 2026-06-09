@@ -50,11 +50,11 @@ const superpoderes = [
 
 export default function Diferenciais() {
   return (
-    <section className="py-32 px-6 lg:px-8" style={{ background: '#130818' }}>
+    <section className="py-16 lg:py-32 px-6 lg:px-8" style={{ background: '#130818' }}>
       <div className="max-w-6xl mx-auto">
 
         <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          className="text-center mb-20">
+          className="text-center mb-10 lg:mb-20">
           <span className="text-xs tracking-widest uppercase font-semibold" style={{ color: '#C9768F' }}>
             só o Envelope Lacrado tem
           </span>
@@ -73,7 +73,7 @@ export default function Diferenciais() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.1 }}>
-              <motion.div className="rounded-2xl p-8 h-full border transition-all"
+              <motion.div className="rounded-2xl p-5 sm:p-8 h-full border transition-all"
                 style={{ background: s.bg, borderColor: s.borda }}
                 whileHover={{ scale: 1.01, boxShadow: `0 8px 30px ${s.glow}` }}>
 
@@ -104,7 +104,7 @@ export default function Diferenciais() {
 
         {/* CTA */}
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          className="mt-16 rounded-2xl p-8 text-center border"
+          className="mt-10 lg:mt-16 rounded-2xl p-6 sm:p-8 text-center border"
           style={{ background: 'rgba(201,118,143,0.06)', borderColor: 'rgba(201,118,143,0.25)' }}>
           <p className="text-lg font-semibold mb-2" style={{ color: '#F0E4D4' }}>
             Um buquê murcha em 3 dias. Uma página aqui dura para sempre.

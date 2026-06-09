@@ -95,9 +95,9 @@ export default function LandingPage() {
         </div>
 
         {/* FAQ */}
-        <section className="py-28 px-6 lg:px-8" style={{ background: '#0d0612' }}>
+        <section className="py-16 lg:py-28 px-6 lg:px-8" style={{ background: '#0d0612' }}>
           <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-16">
+            <div className="text-center mb-10 lg:mb-16">
               <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: '#C9768F' }}>Dúvidas</span>
               <h2 className="font-display text-4xl sm:text-5xl font-bold mt-3" style={{ color: '#F0E4D4' }}>
                 Perguntas frequentes
@@ -131,7 +131,7 @@ export default function LandingPage() {
 
         {/* CTA final */}
         <section
-          className="py-28 px-6 relative overflow-hidden"
+          className="py-20 lg:py-28 px-6 relative overflow-hidden"
           style={{ background: 'linear-gradient(135deg, #C9768F 0%, #b5607a 50%, #C9A96E 100%)' }}
         >
           <div

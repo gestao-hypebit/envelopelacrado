@@ -27,11 +27,11 @@ const garantias = [
 
 export default function Precos() {
   return (
-    <section className="py-32 px-6 lg:px-8" style={{ background: '#130818' }}>
+    <section className="py-16 lg:py-32 px-6 lg:px-8" style={{ background: '#130818' }}>
       <div className="max-w-5xl mx-auto">
 
         <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          className="text-center mb-16">
+          className="text-center mb-8 lg:mb-16">
           <span className="text-xs tracking-widest uppercase font-semibold" style={{ color: '#C9768F' }}>preço</span>
           <h2 className="font-display text-4xl sm:text-5xl font-bold mt-3 mb-4" style={{ color: '#F0E4D4' }}>
             Uma coisa só. Para sempre.
@@ -47,7 +47,7 @@ export default function Precos() {
           style={{ borderColor: 'rgba(201,118,143,0.25)' }}>
 
           {/* LEFT — preço */}
-          <div className="relative p-10 flex flex-col justify-between overflow-hidden"
+          <div className="relative p-6 lg:p-10 flex flex-col justify-between overflow-hidden"
             style={{ background: 'linear-gradient(145deg, #1e0818, #130818)' }}>
 
             {/* Pink glow */}
@@ -62,9 +62,9 @@ export default function Precos() {
               </p>
 
               <div className="flex items-end gap-1 mb-2">
-                <span className="text-xl font-medium mt-4" style={{ color: '#C9768F' }}>R$</span>
-                <span className="font-display font-bold leading-none" style={{ fontSize: '6rem', color: '#F0E4D4' }}>19</span>
-                <span className="text-3xl font-bold mb-3" style={{ color: '#F0E4D4' }}>,90</span>
+                <span className="text-lg font-medium mt-4" style={{ color: '#C9768F' }}>R$</span>
+                <span className="font-display font-bold leading-none" style={{ fontSize: 'clamp(3.5rem, 14vw, 6rem)', color: '#F0E4D4' }}>19</span>
+                <span className="text-2xl sm:text-3xl font-bold mb-2 sm:mb-3" style={{ color: '#F0E4D4' }}>,90</span>
               </div>
               <p className="text-sm mb-8" style={{ color: 'rgba(240,228,212,0.5)' }}>
                 Pagamento único · Pix ou Cartão · Sem surpresas
@@ -99,7 +99,7 @@ export default function Precos() {
           </div>
 
           {/* RIGHT — features */}
-          <div className="p-10" style={{ background: 'rgba(255,255,255,0.02)', borderLeft: '1px solid rgba(201,118,143,0.15)' }}>
+          <div className="p-6 lg:p-10 border-t lg:border-t-0 lg:border-l" style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(201,118,143,0.15)' }}>
             <p className="text-xs font-semibold tracking-widest uppercase mb-6" style={{ color: '#C9768F' }}>
               Tudo incluído
             </p>
