@@ -4,7 +4,6 @@ import PreviewSection from '@/components/landing/PreviewSection'
 import Diferenciais from '@/components/landing/Diferenciais'
 import Depoimentos from '@/components/landing/Depoimentos'
 import Precos from '@/components/landing/Precos'
-import BannerUrgencia from '@/components/landing/BannerUrgencia'
 import StickyCtaMobile from '@/components/landing/StickyCtaMobile'
 import CtaLink from '@/components/landing/CtaLink'
 import TrackEvent from '@/components/TrackEvent'
@@ -46,12 +45,10 @@ const faqItems = [
 export default function LandingPage() {
   return (
     <main style={{ background: '#0d0612' }}>
-      <BannerUrgencia />
-
       {/* Navbar escuro */}
       <nav
-        className="fixed left-0 right-0 z-50 backdrop-blur-md border-b"
-        style={{ top: '40px', background: 'rgba(13,6,18,0.92)', borderColor: 'rgba(201,118,143,0.12)' }}
+        className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b"
+        style={{ background: 'rgba(13,6,18,0.92)', borderColor: 'rgba(201,118,143,0.12)' }}
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between h-16">
           <span className="font-display text-xl font-bold" style={{ color: '#C9768F' }}>💌 Envelope Lacrado</span>
@@ -73,8 +70,8 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Content — offset: 40px (banner) + 64px (nav) = 104px */}
-      <div style={{ paddingTop: '104px' }} className="pb-24 lg:pb-0">
+      {/* Content — offset: 64px (nav) */}
+      <div style={{ paddingTop: '64px' }} className="pb-24 lg:pb-0">
         <TrackEvent name="ViewContent" params={{ content_name: 'Landing Page', content_type: 'product', value: 19.90, currency: 'BRL' }} />
         <Hero />
 
