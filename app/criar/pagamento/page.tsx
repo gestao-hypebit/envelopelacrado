@@ -68,7 +68,7 @@ function PagamentoContent() {
         const data = await res.json()
         if (data.status === 'approved') {
           clearInterval(pollingRef.current!)
-          await ativarPagina()
+          await ativarPagina(pix.paymentId)
         }
       } catch { /* silencioso */ }
     }, 3000)
@@ -86,7 +86,7 @@ function PagamentoContent() {
         if (data.status === 'approved') {
           clearInterval(polling3dsRef.current!)
           setDesafio3ds(null)
-          await ativarPagina()
+          await ativarPagina(desafio3ds.paymentId)
         } else if (data.status === 'rejected' || data.status === 'cancelled') {
           clearInterval(polling3dsRef.current!)
           setDesafio3ds(null)
@@ -108,7 +108,7 @@ function PagamentoContent() {
         if (data.status === 'approved') {
           clearInterval(pollingCartaoRef.current!)
           setCartaoPendente(null)
-          await ativarPagina()
+          await ativarPagina(cartaoPendente.paymentId)
         } else if (data.status === 'rejected' || data.status === 'cancelled') {
           clearInterval(pollingCartaoRef.current!)
           setCartaoPendente(null)
@@ -167,7 +167,7 @@ function PagamentoContent() {
             const data = await res.json()
             if (!res.ok) throw new Error(data.error)
             if (data.status === 'approved') {
-              await ativarPagina()
+              await ativarPagina(String(data.paymentId))
             } else if (data.statusDetail === 'pending_challenge' && data.threeDsInfo?.external_resource_url) {
               // Banco exige verificação 3DS — exibe iframe inline
               setDesafio3ds({ url: data.threeDsInfo.external_resource_url, paymentId: String(data.paymentId) })
@@ -233,16 +233,21 @@ function PagamentoContent() {
     }
   }
 
-  const ativarPagina = async () => {
+  const ativarPagina = async (paymentId: string) => {
     const slug = sessionStorage.getItem('memoriai_slug')
     if (!slug) return
     setAtivando(true)
     try {
-      await fetch('/api/paginas/ativar', {
+      const res = await fetch('/api/paginas/ativar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug }),
+        body: JSON.stringify({ slug, paymentId }),
       })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setErro(data.error || 'Não foi possível confirmar o pagamento.')
+        return
+      }
       fbq('track', 'Purchase', { value: 19.90, currency: 'BRL', content_type: 'product', content_ids: ['envelope-lacrado'] })
       setPago(true)
     } finally {

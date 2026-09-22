@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { enviarEmailConfirmacao } from '@/lib/resend'
+import { buscarPagamento } from '@/lib/mercadopago'
 import type { Pagina } from '@/types'
 
 const supabase = createClient(
@@ -9,8 +10,9 @@ const supabase = createClient(
 )
 
 export async function POST(req: NextRequest) {
-  const { slug } = await req.json()
+  const { slug, paymentId } = await req.json()
   if (!slug) return NextResponse.json({ error: 'slug obrigatório' }, { status: 400 })
+  if (!paymentId) return NextResponse.json({ error: 'paymentId obrigatório' }, { status: 400 })
 
   // Busca a página antes de ativar para verificar se já foi processada
   const { data: paginaAtual } = await supabase
@@ -28,9 +30,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
+  // Confirma no Mercado Pago que ESSE pagamento foi aprovado e pertence a ESSA página
+  // antes de ativar — nunca confiar no que o client alega.
+  let payment
+  try {
+    payment = await buscarPagamento(String(paymentId))
+  } catch {
+    return NextResponse.json({ error: 'Não foi possível confirmar o pagamento' }, { status: 502 })
+  }
+
+  if (payment.status !== 'approved') {
+    return NextResponse.json({ error: 'Pagamento ainda não aprovado' }, { status: 402 })
+  }
+
+  if (String(payment.external_reference) !== String(paginaAtual.id)) {
+    return NextResponse.json({ error: 'Pagamento não corresponde a esta página' }, { status: 403 })
+  }
+
   const { error } = await supabase
     .from('pages')
-    .update({ status: 'active', paid_at: new Date().toISOString() })
+    .update({ status: 'active', payment_id: String(paymentId), paid_at: new Date().toISOString() })
     .eq('slug', slug)
 
   if (error) {
