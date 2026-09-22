@@ -1,36 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase/server'
 
 const admin = () =>
-  createClient(
+  createServiceClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
 // DELETE /api/momentos/[id]
-// Body: { slug, email }
+// Body: { slug }
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const { slug, email } = await req.json()
+  const { slug } = await req.json()
 
-  if (!slug || !email) {
-    return NextResponse.json({ error: 'slug e email obrigatórios' }, { status: 400 })
+  if (!slug) {
+    return NextResponse.json({ error: 'slug obrigatório' }, { status: 400 })
   }
 
-  const sb = admin()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
-  // Verificar dono
-  const { data: page } = await sb
+  const { data: page } = await supabase
     .from('pages')
     .select('id')
     .eq('slug', slug)
-    .eq('email_criador', email)
+    .eq('user_id', user.id)
     .single()
 
   if (!page) return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
+
+  const sb = admin()
 
   // Verificar que o momento pertence a essa página
   const { data: momento } = await sb

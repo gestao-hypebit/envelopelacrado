@@ -85,7 +85,7 @@ export default async function PaginaCasal({ params, searchParams }: Props) {
     const supabase = await createClient()
     const { data } = await supabase
       .from('pages')
-      .select('*')
+      .select('id, slug, status, nome_pessoa1, nome_pessoa2, data_inicio, narrativa_ia, tema, musica_url')
       .eq('slug', slug)
       .eq('status', 'active')
       .single()

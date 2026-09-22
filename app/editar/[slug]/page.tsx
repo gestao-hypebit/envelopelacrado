@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useParams, useSearchParams, useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -44,10 +44,8 @@ interface Momento {
 
 function EditarContent() {
   const params = useParams()
-  const searchParams = useSearchParams()
   const router = useRouter()
   const slug = params.slug as string
-  const email = searchParams.get('email') ?? ''
 
   const [carregando, setCarregando] = useState(true)
   const [salvando, setSalvando] = useState(false)
@@ -68,7 +66,6 @@ function EditarContent() {
   const inputFotoRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (!email) { router.push('/dashboard'); return }
     carregarPagina()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -76,22 +73,13 @@ function EditarContent() {
   const carregarPagina = async () => {
     setCarregando(true)
     try {
-      const res = await fetch('/api/paginas/minhas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      })
-      const data = await res.json()
-      const pagina = data.paginas?.find((p: any) => p.slug === slug)
-      if (!pagina) { router.push('/dashboard'); return }
-
-      // Busca dados completos
-      const resCompleto = await fetch(`/api/paginas/buscar?slug=${slug}&email=${encodeURIComponent(email)}`)
+      const resCompleto = await fetch(`/api/paginas/buscar?slug=${slug}`)
+      if (!resCompleto.ok) { router.push('/dashboard'); return }
       const completo = await resCompleto.json()
       setDados(completo.pagina)
 
       // Carregar momentos
-      const resMomentos = await fetch(`/api/momentos?slug=${slug}&email=${encodeURIComponent(email)}`)
+      const resMomentos = await fetch(`/api/momentos?slug=${slug}`)
       const dadosMomentos = await resMomentos.json()
       setMomentos(dadosMomentos.momentos ?? [])
     } catch {
@@ -124,7 +112,6 @@ function EditarContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           slug,
-          email,
           campos: {
             nome_pessoa1: dados.nome_pessoa1,
             nome_pessoa2: dados.nome_pessoa2,
@@ -207,7 +194,6 @@ function EditarContent() {
     try {
       const form = new FormData()
       form.append('slug', slug)
-      form.append('email', email)
       form.append('titulo', novoTitulo.trim())
       if (novaData) form.append('data', novaData)
       if (novaFoto) form.append('foto', novaFoto)
@@ -254,7 +240,7 @@ function EditarContent() {
       const res = await fetch(`/api/momentos/${id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug, email }),
+        body: JSON.stringify({ slug }),
       })
       if (!res.ok) throw new Error()
       setMomentos(prev => prev.filter(m => m.id !== id))

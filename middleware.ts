@@ -34,6 +34,13 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
 
+  // /editar/* exige sessão — sem ela não há como saber de quem é a página
+  if (pathname.startsWith('/editar') && !user) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard'
+    return NextResponse.redirect(url)
+  }
+
   return supabaseResponse
 }
 

@@ -1,32 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase/server'
 
-// Cliente admin para operações de storage e insert sem RLS
+// Cliente admin — usado só depois de confirmar a posse via sessão, para
+// operações de storage/insert que não precisam repassar RLS.
 const admin = () =>
-  createClient(
+  createServiceClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-// Verifica se o email é dono da página com esse slug
-async function verificarDono(slug: string, email: string) {
-  const sb = admin()
-  const { data } = await sb
+// Confirma, via sessão autenticada, que o usuário logado é dono da página com esse slug
+async function verificarDono(slug: string): Promise<string | null> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data } = await supabase
     .from('pages')
     .select('id')
     .eq('slug', slug)
-    .eq('email_criador', email)
+    .eq('user_id', user.id)
     .single()
   return data?.id ?? null
 }
 
-// GET /api/momentos?slug=X&email=Y
+// GET /api/momentos?slug=X
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
-  const slug  = searchParams.get('slug')  ?? ''
-  const email = searchParams.get('email') ?? ''
+  const slug = searchParams.get('slug') ?? ''
 
-  const pageId = await verificarDono(slug, email)
+  const pageId = await verificarDono(slug)
   if (!pageId) return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
 
   const { data } = await admin()
@@ -39,21 +43,20 @@ export async function GET(req: NextRequest) {
 }
 
 // POST /api/momentos  (multipart/form-data)
-// Campos: slug, email, titulo, descricao?, data?, foto?
+// Campos: slug, titulo, descricao?, data?, foto?
 export async function POST(req: NextRequest) {
   const form   = await req.formData()
   const slug   = form.get('slug')   as string
-  const email  = form.get('email')  as string
   const titulo = form.get('titulo') as string
   const descricao = (form.get('descricao') as string) || null
   const data      = (form.get('data')      as string) || null
   const foto      = form.get('foto') as File | null
 
-  if (!slug || !email || !titulo) {
+  if (!slug || !titulo) {
     return NextResponse.json({ error: 'Campos obrigatórios ausentes' }, { status: 400 })
   }
 
-  const pageId = await verificarDono(slug, email)
+  const pageId = await verificarDono(slug)
   if (!pageId) return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
 
   const sb = admin()

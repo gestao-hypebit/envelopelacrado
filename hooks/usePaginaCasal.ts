@@ -22,7 +22,7 @@ export function usePaginaCasal(slug: string): UsePaginaCasalReturn {
 
         const { data: paginaData, error: paginaError } = await supabase
           .from('pages')
-          .select('*')
+          .select('id, slug, status, nome_pessoa1, nome_pessoa2, data_inicio, narrativa_ia, tema, musica_url')
           .eq('slug', slug)
           .eq('status', 'active')
           .single()
@@ -45,11 +45,12 @@ export function usePaginaCasal(slug: string): UsePaginaCasalReturn {
           .eq('aprovada', true)
           .order('created_at', { ascending: false })
 
+        // A anon key só tem acesso às colunas públicas de `pages` (ver migration 004)
         setPagina({
           ...paginaData,
           momentos: momentosData ?? [],
           contribuicoes: contribuicoesData ?? [],
-        })
+        } as PaginaComMomentos)
       } catch {
         setErro('Erro ao carregar página')
       } finally {

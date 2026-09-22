@@ -14,7 +14,6 @@ interface PaginaColaboracao {
   id: string
   nome_pessoa1: string
   nome_pessoa2: string
-  colaboracao_prazo: string | null
   tema: string
 }
 
@@ -36,27 +35,15 @@ export default function ColaborarPage() {
   useEffect(() => {
     const buscar = async () => {
       try {
-        const supabase = createClient()
-        const { data, error } = await supabase
-          .from('pages')
-          .select('id, nome_pessoa1, nome_pessoa2, colaboracao_prazo, tema, colaboracao_ativa')
-          .eq('colaboracao_token', token)
-          .eq('status', 'active')
-          .single()
+        const res = await fetch(`/api/colaborar/${token}`)
+        const data = await res.json()
 
-        if (error || !data) {
-          setErro('Link de colaboração inválido ou expirado.')
-          return
-        }
-
-        if (!data.colaboracao_ativa) {
-          setErro('Colaboração não está ativa para esta página.')
-          return
-        }
-
-        // Verificar prazo
-        if (data.colaboracao_prazo && new Date(data.colaboracao_prazo) < new Date()) {
-          setExpirado(true)
+        if (!res.ok) {
+          if (data.expirado) {
+            setExpirado(true)
+          } else {
+            setErro(data.error || 'Link de colaboração inválido ou expirado.')
+          }
           return
         }
 

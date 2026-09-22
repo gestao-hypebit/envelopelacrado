@@ -1,26 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const { slug, email, campos } = body
+  const { slug, campos } = body
 
-  if (!slug || !email || !campos) {
+  if (!slug || !campos) {
     return NextResponse.json({ error: 'Dados incompletos' }, { status: 400 })
   }
 
-  // Verifica que o email é dono desta página
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+  }
+
+  // Confirma que a página pertence ao usuário autenticado
   const { data: pagina, error: erroBusca } = await supabase
     .from('pages')
-    .select('id, status')
+    .select('id')
     .eq('slug', slug)
-    .eq('email_criador', email.toLowerCase().trim())
-    .in('status', ['active', 'draft'])
+    .eq('user_id', user.id)
     .single()
 
   if (erroBusca || !pagina) {
