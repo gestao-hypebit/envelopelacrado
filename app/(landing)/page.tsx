@@ -8,6 +8,12 @@ import StickyCtaMobile from '@/components/landing/StickyCtaMobile'
 import CtaLink from '@/components/landing/CtaLink'
 import TrackEvent from '@/components/TrackEvent'
 import Link from 'next/link'
+import type { Metadata } from 'next'
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, PRECO } from '@/lib/seo'
+
+export const metadata: Metadata = {
+  alternates: { canonical: '/' },
+}
 
 const faqItems = [
   {
@@ -42,9 +48,67 @@ const faqItems = [
   },
 ]
 
+// Dados estruturados (schema.org) — ajudam Google e buscadores de IA a entender marca, preço e FAQ
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: `${SITE_URL}/icon`,
+      contactPoint: {
+        '@type': 'ContactPoint',
+        telephone: '+55-16-99617-7828',
+        contactType: 'customer service',
+        availableLanguage: 'Portuguese',
+      },
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: SITE_NAME,
+      inLanguage: 'pt-BR',
+      publisher: { '@id': `${SITE_URL}/#organization` },
+    },
+    {
+      '@type': 'Product',
+      '@id': `${SITE_URL}/#produto`,
+      name: 'Página de amor personalizada — Envelope Lacrado',
+      description: SITE_DESCRIPTION,
+      image: `${SITE_URL}/opengraph-image`,
+      brand: { '@id': `${SITE_URL}/#organization` },
+      offers: {
+        '@type': 'Offer',
+        price: PRECO,
+        priceCurrency: 'BRL',
+        availability: 'https://schema.org/InStock',
+        url: `${SITE_URL}/criar`,
+        seller: { '@id': `${SITE_URL}/#organization` },
+      },
+    },
+    {
+      '@type': 'FAQPage',
+      '@id': `${SITE_URL}/#faq`,
+      mainEntity: faqItems.map((item) => ({
+        '@type': 'Question',
+        name: item.pergunta,
+        acceptedAnswer: { '@type': 'Answer', text: item.resposta },
+      })),
+    },
+  ],
+}
+
 export default function LandingPage() {
   return (
     <main style={{ background: '#0d0612' }}>
+      <script
+        type="application/ld+json"
+        // Escapa "<" para impedir que conteúdo feche a tag <script>
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+      />
       {/* Navbar escuro */}
       <nav
         className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b"

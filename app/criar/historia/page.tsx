@@ -2,6 +2,14 @@ import StepIndicator from '@/components/criar/StepIndicator'
 import FormularioHistoria from '@/components/criar/FormularioHistoria'
 import Link from 'next/link'
 
+import type { Metadata } from 'next'
+import { NOINDEX } from '@/lib/seo'
+
+export const metadata: Metadata = {
+  title: 'Conte a história de vocês',
+  robots: NOINDEX,
+}
+
 export default function HistoriaPage() {
   return (
     <div className="min-h-screen bg-[#FAFAF8]">

@@ -2,6 +2,14 @@ import StepIndicator from '@/components/criar/StepIndicator'
 import UploadFotos from '@/components/criar/UploadFotos'
 import Link from 'next/link'
 
+import type { Metadata } from 'next'
+import { NOINDEX } from '@/lib/seo'
+
+export const metadata: Metadata = {
+  title: 'Fotos e momentos',
+  robots: NOINDEX,
+}
+
 export default function FotosPage() {
   return (
     <div className="min-h-screen bg-[#FAFAF8]">

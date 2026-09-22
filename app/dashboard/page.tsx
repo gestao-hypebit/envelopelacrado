@@ -4,6 +4,14 @@ import { createClient } from '@/lib/supabase/server'
 import LoginForm from '@/components/dashboard/LoginForm'
 import LogoutButton from '@/components/dashboard/LogoutButton'
 
+import type { Metadata } from 'next'
+import { NOINDEX } from '@/lib/seo'
+
+export const metadata: Metadata = {
+  title: 'Minhas páginas',
+  robots: NOINDEX,
+}
+
 export default async function Dashboard() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

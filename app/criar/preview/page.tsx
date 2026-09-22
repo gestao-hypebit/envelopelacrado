@@ -2,6 +2,14 @@ import StepIndicator from '@/components/criar/StepIndicator'
 import PreviewPage from '@/components/criar/PreviewPage'
 import Link from 'next/link'
 
+import type { Metadata } from 'next'
+import { NOINDEX } from '@/lib/seo'
+
+export const metadata: Metadata = {
+  title: 'Prévia da sua página',
+  robots: NOINDEX,
+}
+
 export default function PreviewRoute() {
   return (
     <div className="min-h-screen bg-[#FAFAF8]">

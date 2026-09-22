@@ -4,6 +4,14 @@ import MessageBoard from '@/components/pagina-casal/MessageBoard'
 import type { Resposta } from '@/types'
 import Link from 'next/link'
 
+import type { Metadata } from 'next'
+import { NOINDEX } from '@/lib/seo'
+
+export const metadata: Metadata = {
+  title: 'Deixar minha resposta',
+  robots: NOINDEX,
+}
+
 interface Props {
   params: Promise<{ slug: string }>
 }

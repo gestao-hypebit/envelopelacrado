@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { cache } from 'react'
 import type { Metadata } from 'next'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { verifyPreviewToken } from '@/lib/preview-token'
@@ -13,38 +14,52 @@ import RoletaDestinos from '@/components/pagina-casal/RoletaDestinos'
 import StickyResposta from '@/components/pagina-casal/StickyResposta'
 import type { Momento, Resposta } from '@/types'
 import Link from 'next/link'
+import { NOINDEX, SITE_NAME } from '@/lib/seo'
 
 interface Props {
   params: Promise<{ slug: string }>
   searchParams: Promise<{ preview?: string; pt?: string }>
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params
+// Deduplica a consulta entre generateMetadata e a página (mesma requisição)
+const buscarPaginaAtiva = cache(async (slug: string) => {
   const supabase = await createClient()
   const { data } = await supabase
     .from('pages')
-    .select('nome_pessoa1, nome_pessoa2')
+    .select('id, slug, status, nome_pessoa1, nome_pessoa2, data_inicio, narrativa_ia, tema, musica_url')
     .eq('slug', slug)
     .eq('status', 'active')
     .single()
+  return data
+})
 
-  if (!data) return { title: 'Página não encontrada' }
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params
+  const data = await buscarPaginaAtiva(slug)
 
-  const baseUrl = (process.env.NEXT_PUBLIC_URL ?? 'https://envelopelacrado.com.br').replace(/\/$/, '')
+  if (!data) return { title: 'Página não encontrada', robots: NOINDEX }
+
   const nome1 = data.nome_pessoa1
   const nome2 = data.nome_pessoa2
-  const titulo = `${nome1} & ${nome2} | Envelope Lacrado`
+  // absolute: evita o sufixo duplicado do template do layout
+  const titulo = `${nome1} & ${nome2} | ${SITE_NAME}`
   const descricao = `A história de amor de ${nome1} e ${nome2}, narrada pela IA. Uma surpresa única e inesquecível. 💕`
-  const ogImage = `${baseUrl}/api/og?nome1=${encodeURIComponent(nome1)}&nome2=${encodeURIComponent(nome2)}`
+  const ogImage = `/api/og?nome1=${encodeURIComponent(nome1)}&nome2=${encodeURIComponent(nome2)}`
+  const url = `/p/${slug}`
 
   return {
-    title: titulo,
+    title: { absolute: titulo },
     description: descricao,
+    // Página íntima do casal: acessível pelo link/QR Code, mas fora do Google
+    robots: NOINDEX,
+    alternates: { canonical: url },
     openGraph: {
       title: titulo,
       description: descricao,
       type: 'website',
+      url,
+      siteName: SITE_NAME,
+      locale: 'pt_BR',
       images: [{ url: ogImage, width: 1200, height: 630, alt: `${nome1} & ${nome2}` }],
     },
     twitter: {
@@ -82,14 +97,7 @@ export default async function PaginaCasal({ params, searchParams }: Props) {
 
     pagina = data
   } else {
-    const supabase = await createClient()
-    const { data } = await supabase
-      .from('pages')
-      .select('id, slug, status, nome_pessoa1, nome_pessoa2, data_inicio, narrativa_ia, tema, musica_url')
-      .eq('slug', slug)
-      .eq('status', 'active')
-      .single()
-    pagina = data
+    pagina = await buscarPaginaAtiva(slug)
   }
 
   if (!pagina) notFound()

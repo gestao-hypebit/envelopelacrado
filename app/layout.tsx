@@ -1,8 +1,9 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { Inter, Playfair_Display, Cormorant_Garamond } from 'next/font/google'
 import Script from 'next/script'
 import MetaPixel from '@/components/MetaPixel'
+import { SITE_URL, SITE_NAME, SITE_TITLE, SITE_DESCRIPTION, SITE_KEYWORDS } from '@/lib/seo'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const playfair = Playfair_Display({
@@ -19,39 +20,52 @@ const cormorant = Cormorant_Garamond({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Envelope Lacrado — A história de vocês, narrada pela IA',
-    template: '%s | Envelope Lacrado',
+    default: SITE_TITLE,
+    template: `%s | ${SITE_NAME}`,
   },
-  description: 'Transforme os momentos do casal em uma página inesquecível. Presente digital que emociona de verdade, criado com inteligência artificial.',
-  keywords: ['presente digital', 'casal', 'aniversário', 'namorados', 'inteligência artificial', 'história de amor'],
-  authors: [{ name: 'Envelope Lacrado' }],
-  creator: 'Envelope Lacrado',
+  description: SITE_DESCRIPTION,
+  keywords: SITE_KEYWORDS,
+  applicationName: SITE_NAME,
+  authors: [{ name: SITE_NAME, url: SITE_URL }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  category: 'shopping',
+  formatDetection: {
+    telephone: false,
+    email: false,
+    address: false,
+  },
+  // Imagens OG/Twitter vêm de app/opengraph-image.tsx (arquivo convencional do Next)
   openGraph: {
     type: 'website',
     locale: 'pt_BR',
-    url: 'https://envelopelacrado.com.br',
-    siteName: 'Envelope Lacrado',
-    title: 'Envelope Lacrado — A história de vocês, narrada pela IA',
-    description: 'Transforme os momentos do casal em uma página inesquecível.',
-    images: [
-      {
-        url: '/og-image.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'Envelope Lacrado',
-      },
-    ],
+    url: '/',
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Envelope Lacrado — A história de vocês, narrada pela IA',
-    description: 'Transforme os momentos do casal em uma página inesquecível.',
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
   },
+}
+
+export const viewport: Viewport = {
+  themeColor: '#0d0612',
 }
 
 export default function RootLayout({
